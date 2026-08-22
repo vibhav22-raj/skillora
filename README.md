@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LearnPath AI 🧠
 
 > **AI-Powered Personalized Learning Path Recommender** — HCLTech Amplified Hackathon
@@ -145,3 +146,4 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for Vercel + Render + Supabase deployment.
 ## 🏆 Hackathon
 
 See [HACKATHON.md](HACKATHON.md) for problem statement, solution design, and WOW features.
+
