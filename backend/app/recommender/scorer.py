@@ -196,6 +196,27 @@ def calculate_total_score(
     return round(min(100.0, max(0.0, score)), 2)
 
 
+def calculate_score(
+    goal_relevance: float,
+    skill_gap_relevance: float,
+    prerequisite_fit: float,
+    difficulty_fit: float,
+    time_fit: float,
+    preference_fit: float,
+    weights: Optional[Dict[str, float]] = None,
+) -> float:
+    """Backward-compatible alias for the legacy scorer API."""
+    return calculate_total_score(
+        goal_relevance,
+        skill_gap_relevance,
+        prerequisite_fit,
+        difficulty_fit,
+        time_fit,
+        preference_fit,
+        weights,
+    )
+
+
 def score_resource(
     resource: Dict[str, Any],
     profile: Dict[str, Any],
