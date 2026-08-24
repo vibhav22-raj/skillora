@@ -20,18 +20,21 @@ export default function Walkthrough({ onClose }: { onClose: () => void }) {
 
   const [index, setIndex] = useState(0);
   const total = steps.length;
-n  const next = () => {
+
+  const next = () => {
     if (index < total - 1) setIndex((i) => i + 1);
     else {
       localStorage.setItem('learnpath_walkthrough_shown', '1');
       onClose();
     }
   };
-n  const skip = () => {
+
+  const skip = () => {
     localStorage.setItem('learnpath_walkthrough_shown', '1');
     onClose();
   };
-n  return (
+
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <div className="flex items-start justify-between mb-4">
