@@ -78,6 +78,7 @@ export const dashboardAPI = {
 export const learningPathAPI = {
   generate: (data: {
     goal: string;
+    free_text_goal?: string;
     experience_level: string;
     current_skills: { name: string; level: number }[];
     weekly_hours: number;
