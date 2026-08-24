@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 from backend.app.database.base import get_db
-from backend.app.models import User, LearnerProfile, UserSkill, LearningResource, Roadmap, Project
+from backend.app.models import User, LearnerProfile, UserSkill, LearningResource, Roadmap, Project, Skill
 from backend.app.schemas import ApiResponse, LearningPathGenerate, LearningPathAdapt
 from backend.app.services.auth_service import get_current_user
 from backend.app.recommender.skill_gap import calculate_gaps
@@ -160,16 +160,42 @@ async def generate_learning_path(
     )
     db.add(roadmap)
 
-    # Update profile
+    # Update or create profile and persist extracted/enriched fields
     profile_result = await db.execute(
         select(LearnerProfile).where(LearnerProfile.user_id == current_user.id)
     )
     profile = profile_result.scalar_one_or_none()
-    if profile:
-        profile.target_role = request.goal
-        profile.experience_level = request.experience_level
-        profile.weekly_hours = request.weekly_hours
-        profile.learning_style = request.learning_style
+    if not profile:
+        profile = LearnerProfile(id=str(uuid.uuid4()), user_id=current_user.id)
+        db.add(profile)
+
+    # Persist merged variables (prefer AI-extracted values)
+    profile.target_role = goal
+    profile.experience_level = experience_level
+    profile.weekly_hours = weekly_hours
+    profile.learning_style = learning_style
+    if request.target_deadline:
+        profile.target_deadline = request.target_deadline
+
+    # Persist current skills: replace old user skills with the enriched set
+    from sqlalchemy import delete
+    await db.execute(delete(UserSkill).where(UserSkill.user_id == current_user.id))
+
+    for skill_name, level in current_skills_dict.items():
+        skill_result = await db.execute(select(Skill).where(Skill.name == skill_name))
+        skill = skill_result.scalar_one_or_none()
+
+        user_skill = UserSkill(
+            id=str(uuid.uuid4()),
+            user_id=current_user.id,
+            skill_id=skill.id if skill else str(uuid.uuid4()),
+            skill_name=skill_name,
+            current_level=level,
+            target_level=5,
+            gap_score=0.0,
+            priority="low",
+        )
+        db.add(user_skill)
 
     await db.commit()
     await db.refresh(roadmap)
