@@ -50,6 +50,7 @@ export default function OnboardingPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [form, setForm] = useState({
     goal: '',
+    free_text_goal: '',
     experience_level: '',
     weekly_hours: 10,
     learning_style: 'mixed',
@@ -114,7 +115,8 @@ export default function OnboardingPage() {
 
       // Generate roadmap
       const { data } = await learningPathAPI.generate({
-        goal: form.goal,
+        goal: form.goal || 'Software Engineer',
+        free_text_goal: form.free_text_goal || undefined,
         experience_level: form.experience_level || 'intermediate',
         current_skills: form.current_skills,
         weekly_hours: form.weekly_hours,
@@ -175,11 +177,12 @@ export default function OnboardingPage() {
                   <div className="text-center mb-8">
                     <Target className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
                     <h2 className="text-3xl font-bold mb-2">What's your career goal?</h2>
-                    <p className="text-slate-400">Choose the role you want to land. We'll build your complete roadmap.</p>
+                    <p className="text-slate-400">Choose the role you want to land or describe it in your own words.</p>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-3">
+
+                  <div className="grid sm:grid-cols-2 gap-3 mb-4">
                     {ROLES.map((role) => (
-                      <button key={role} onClick={() => setForm((f) => ({ ...f, goal: role }))}
+                      <button key={role} onClick={() => setForm((f) => ({ ...f, goal: role, free_text_goal: '' }))}
                         className={`text-left px-5 py-4 rounded-xl border transition-all font-medium ${form.goal === role
                           ? 'bg-indigo-600 border-indigo-500 text-white'
                           : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-indigo-500 hover:bg-indigo-950'}`}>
@@ -187,6 +190,13 @@ export default function OnboardingPage() {
                         {role}
                       </button>
                     ))}
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-slate-400 text-sm mb-2">Or describe your goal (optional)</label>
+                    <textarea value={form.free_text_goal} onChange={(e) => setForm((f) => ({ ...f, free_text_goal: e.target.value, goal: '' }))}
+                      placeholder="E.g., I want to become a machine learning engineer focusing on NLP and deployment; I can study 10 hours/week"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" rows={3} />
                   </div>
                 </div>
               )}

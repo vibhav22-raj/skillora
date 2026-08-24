@@ -226,6 +226,7 @@ class RoadmapResponse(BaseModel):
 class LearningPathGenerate(BaseModel):
     """Request to generate a new learning path."""
     goal: str
+    free_text_goal: Optional[str] = None
     experience_level: str = "intermediate"
     current_skills: List[Dict[str, Any]] = []
     weekly_hours: float = 10.0

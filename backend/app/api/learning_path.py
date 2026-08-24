@@ -58,21 +58,60 @@ async def generate_learning_path(
     db: AsyncSession = Depends(get_db),
 ):
     """Generate a personalized learning roadmap."""
+    # Allow free-text goal extraction via AI provider if provided
+    goal = request.goal
+    experience_level = request.experience_level
+    weekly_hours = request.weekly_hours
+    learning_style = request.learning_style
+    current_skills_dict = {s["name"]: s.get("level", 2) for s in request.current_skills}
+
+    if getattr(request, "free_text_goal", None):
+        ai_provider = get_ai_provider()
+        try:
+            extracted = await ai_provider.extract_profile(request.free_text_goal)
+            if extracted:
+                # Merge extracted fields, prefer AI when available
+                goal = extracted.get("target_role") or goal
+                experience_level = extracted.get("experience_level") or experience_level
+                weekly_hours = extracted.get("weekly_hours") or weekly_hours
+                learning_style = extracted.get("learning_style") or learning_style
+                # Merge skills: extracted current_skills may be dict -> {name: level}
+                ext_skills = extracted.get("current_skills") or {}
+                if isinstance(ext_skills, dict):
+                    for k, v in ext_skills.items():
+                        if k and isinstance(v, (int, float)):
+                            current_skills_dict[k] = int(v)
+        except Exception:
+            # Fallback: use DemoProvider heuristic if AI fails
+            from backend.app.ai.demo_provider import DemoProvider
+            demo = DemoProvider()
+            try:
+                extracted = await demo.extract_profile(request.free_text_goal)
+                goal = extracted.get("target_role") or goal
+                experience_level = extracted.get("experience_level") or experience_level
+                weekly_hours = extracted.get("weekly_hours") or weekly_hours
+                learning_style = extracted.get("learning_style") or learning_style
+                ext_skills = extracted.get("current_skills") or {}
+                if isinstance(ext_skills, dict):
+                    for k, v in ext_skills.items():
+                        if k and isinstance(v, (int, float)):
+                            current_skills_dict[k] = int(v)
+            except Exception:
+                pass
+
     # Build profile dict
     profile_dict = {
-        "target_role": request.goal,
-        "experience_level": request.experience_level,
-        "weekly_hours": request.weekly_hours,
-        "learning_style": request.learning_style,
+        "target_role": goal,
+        "experience_level": experience_level,
+        "weekly_hours": weekly_hours,
+        "learning_style": learning_style,
         "preferred_duration": "medium",
     }
 
-    # Current skills
-    current_skills_dict = {s["name"]: s.get("level", 2) for s in request.current_skills}
     user_skill_names = list(current_skills_dict.keys())
 
     # Calculate gaps
-    skill_gaps = calculate_gaps(request.goal, current_skills_dict)
+    skill_gaps = calculate_gaps(goal, current_skills_dict)
 
     # Parse deadline
     deadline_months = None
