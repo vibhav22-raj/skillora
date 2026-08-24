@@ -7,7 +7,6 @@ import { Brain, Zap, Target, TrendingUp, MessageCircle, Star, ChevronRight, Book
 import { useAuthStore } from '@/store/auth';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
-import { dashboardAPI } from '@/lib/api';
 import HeroVisual from './(app)/HeroVisual';
 import RoleCard from './(app)/RoleCard';
 
@@ -22,18 +21,19 @@ const features = [
 
 const roles = ['AI/ML Engineer', 'Data Scientist', 'Frontend Developer', 'Backend Developer', 'Data Analyst', 'DevOps Engineer'];
 
-// stateful stats fetched from the backend dashboard when available
+// static stats for public landing page (avoid backend dependency when unauthenticated)
 let initialStats = [
-  { label: 'Career Paths', value: '—' },
-  { label: 'Free Resources', value: '—' },
-  { label: 'Skills Tracked', value: '—' },
+  { label: 'Career Paths', value: '10+' },
+  { label: 'Free Resources', value: '100+' },
+  { label: 'Skills Tracked', value: '50+' },
   { label: 'AI-Powered', value: '100%' },
 ];
 
 export default function HomePage() {
   const router = useRouter();
   const { demoLogin, isLoading } = useAuthStore();
-  const [statsState, setStatsState] = useState(initialStats);
+  // static landing stats — no backend call here so unauthenticated visitors see meaningful numbers
+  const [statsState] = useState(initialStats);
 
   const handleDemo = async () => {
     try {
@@ -45,24 +45,6 @@ export default function HomePage() {
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-    dashboardAPI.get().then((res) => {
-      if (!mounted) return;
-      const d = res.data.data;
-      // pick sane fields if available
-      const s = [
-        { label: 'Career Paths', value: (d?.roles || []).length || '—' },
-        { label: 'Free Resources', value: d?.resources_count ?? '—' },
-        { label: 'Skills Tracked', value: d?.skills_count ?? '—' },
-        { label: 'AI-Powered', value: '100%' },
-      ];
-      setStatsState(s);
-    }).catch(() => {
-      // keep defaults
-    });
-    return () => { mounted = false; };
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
