@@ -105,6 +105,9 @@ export default function DashboardPage() {
             <p className="text-white font-bold">{data.current_streak} day streak</p>
             <p className="text-slate-500 text-xs">Keep it going!</p>
           </div>
+          <button onClick={() => { if (typeof window !== 'undefined') { localStorage.removeItem('learnpath_walkthrough_shown'); } setShowWalkthrough(true); }} className="ml-4 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 px-3 py-2 rounded-lg text-sm">
+            Restart Tour
+          </button>
         </div>
       </motion.div>
 
