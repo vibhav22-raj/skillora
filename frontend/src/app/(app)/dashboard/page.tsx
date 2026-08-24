@@ -6,6 +6,8 @@ import { dashboardAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { getGreeting, getStreakEmoji, getDifficultyColor } from '@/lib/utils';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import Walkthrough from './Walkthrough';
 import {
   TrendingUp, Clock, Zap, Target, ChevronRight, BookOpen,
   MessageCircle, CheckCircle, Play, Star, Map,
@@ -43,6 +45,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const seen = localStorage.getItem('learnpath_walkthrough_shown');
+    if (!seen) setShowWalkthrough(true);
+  }, []);
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardAPI.get().then((r) => r.data.data),
@@ -76,6 +84,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      {showWalkthrough && <Walkthrough onClose={() => { setShowWalkthrough(false); localStorage.setItem('learnpath_walkthrough_shown', '1'); }} /> }
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
