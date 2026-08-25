@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { learningPathAPI } from '@/lib/api';
+import { learningPathAPI, dashboardAPI } from '@/lib/api';
 import { useState } from 'react';
 import { Map, CheckCircle, Clock, ChevronDown, ChevronUp, BookOpen, Folder, Zap, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -169,8 +169,11 @@ export default function RoadmapPage() {
   );
 
   const roadmap = data as Roadmap;
-  const completedPhases = (roadmap.phases || []).filter((p) => p.status === 'completed').length;
-  const progress = Math.round((completedPhases / (roadmap.phases?.length || 1)) * 100);
+  const dashboardQuery = useQuery({ queryKey: ['dashboard-stats'], queryFn: () => dashboardAPI.get().then((r) => r.data.data) });
+
+  // Use dashboard's authoritative overall_progress for consistency across pages
+  const progress = dashboardQuery.data?.overall_progress ?? Math.round(((roadmap.phases || []).filter((p) => p.status === 'completed').length / (roadmap.phases?.length || 1)) * 100);
+  const completedPhases = dashboardQuery.data ? Math.round(((dashboardQuery.data.overall_progress || 0) / 100) * (roadmap.phases?.length || 1)) : (roadmap.phases || []).filter((p) => p.status === 'completed').length;
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">

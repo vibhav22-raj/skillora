@@ -1,4 +1,4 @@
-// Complete API client for LearnPath AI
+﻿// Complete API client for LearnPath AI
 import axios, { AxiosInstance } from 'axios';
 import type {
   User, LearnerProfile, SkillGap, LearningResource, Project,
@@ -16,10 +16,11 @@ const api: AxiosInstance = axios.create({
 });
 
 // Auth token injection
+// Auth token injection
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('learnpath_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) config.headers.Authorization = 'Bearer ' + token;
   }
   return config;
 });
@@ -39,7 +40,7 @@ api.interceptors.response.use(
   }
 );
 
-// ─── Auth API ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Auth API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const authAPI = {
   register: (data: { name: string; email: string; password: string }) =>
     api.post<ApiResponse<{ user: User; access_token: string }>>('/api/auth/register', data),
@@ -52,7 +53,7 @@ export const authAPI = {
   logout: () => api.post('/api/auth/logout'),
 };
 
-// ─── Profile API ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Profile API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const profileAPI = {
   get: () => api.get<ApiResponse<LearnerProfile>>('/api/profile/'),
 
@@ -69,12 +70,12 @@ export const profileAPI = {
   }) => api.post<ApiResponse<{ profile: LearnerProfile; skill_gaps: SkillGap[] }>>('/api/profile/onboarding', data),
 };
 
-// ─── Dashboard API ────────────────────────────────────────────────────────
+// â”€â”€â”€ Dashboard API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const dashboardAPI = {
   get: () => api.get<ApiResponse<DashboardData>>('/api/dashboard/'),
 };
 
-// ─── Learning Path API ────────────────────────────────────────────────────
+// â”€â”€â”€ Learning Path API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const learningPathAPI = {
   generate: (data: {
     goal: string;
@@ -92,7 +93,7 @@ export const learningPathAPI = {
     api.post<ApiResponse<{ roadmap: Roadmap; adaptation: object }>>('/api/learning-path/adapt', { feedback }),
 };
 
-// ─── Recommendations API ──────────────────────────────────────────────────
+// â”€â”€â”€ Recommendations API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const recommendationsAPI = {
   get: (limit = 10) =>
     api.get<ApiResponse<LearningResource[]>>(`/api/recommendations/?limit=${limit}`),
@@ -104,7 +105,7 @@ export const recommendationsAPI = {
     api.post(`/api/recommendations/${resourceId}/feedback`, data),
 };
 
-// ─── Skills API ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Skills API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const skillsAPI = {
   getAll: (category?: string) =>
     api.get<ApiResponse<import('@/types').Skill[]>>(`/api/skills/${category ? `?category=${category}` : ''}`),
@@ -122,7 +123,7 @@ export const skillsAPI = {
     api.get<ApiResponse<string[]>>('/api/skills/roles'),
 };
 
-// ─── Resources API ────────────────────────────────────────────────────────
+// â”€â”€â”€ Resources API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const resourcesAPI = {
   getAll: (params: {
     page?: number;
@@ -150,7 +151,7 @@ export const resourcesAPI = {
     api.post<ApiResponse<null>>(`/api/resources/${id}/complete`),
 };
 
-// ─── Projects API ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Projects API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const projectsAPI = {
   getAll: (params: { category?: string; difficulty?: number } = {}) => {
     const query = new URLSearchParams();
@@ -164,7 +165,7 @@ export const projectsAPI = {
     api.get<ApiResponse<Project[]>>('/api/projects/recommended'),
 };
 
-// ─── Assessment API ───────────────────────────────────────────────────────
+// â”€â”€â”€ Assessment API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const assessmentAPI = {
   getAll: () =>
     api.get<ApiResponse<Assessment[]>>('/api/assessments/'),
@@ -179,7 +180,7 @@ export const assessmentAPI = {
     api.get('/api/assessments/results/my'),
 };
 
-// ─── Chat API ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Chat API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const chatAPI = {
   sendMessage: (message: string, sessionId?: string) =>
     api.post<ApiResponse<{ session_id: string; message: ChatMessage }>>('/api/chat/message', {
@@ -197,7 +198,7 @@ export const chatAPI = {
     api.post<ApiResponse<{ id: string; title: string }>>('/api/chat/sessions', { title: title || 'New Conversation' }),
 };
 
-// ─── Progress API ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Progress API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const progressAPI = {
   get: () => api.get('/api/progress/'),
   update: (data: object) => api.post('/api/progress/update', data),

@@ -4,7 +4,7 @@ import { ChangeEvent, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, CheckCircle2, Clock3, Flame, Pencil, Trash2, UserRound } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { profileAPI } from '@/lib/api';
+import { profileAPI, dashboardAPI } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 
 const MAX_IMAGE_BYTES = 1024 * 1024;
@@ -53,11 +53,13 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
+  const dashboardQuery = useQuery({ queryKey: ['dashboard-stats'], queryFn: () => dashboardAPI.get().then((r) => r.data.data) });
+
   const statCards: Array<{ label: string; value: string; Icon: typeof Flame }> = [
-    { label: 'Current streak', value: `${activity?.current_streak || 0} days`, Icon: Flame },
-    { label: 'Completed courses', value: String(completedQuery.data?.length || 0), Icon: CheckCircle2 },
-    { label: 'Active learning days', value: String(activity?.total_active_days || 0), Icon: Clock3 },
-    { label: 'Learning hours', value: `${Math.round((completedQuery.data || []).reduce((sum, item) => sum + (item.time_spent_hours || 0), 0))}h`, Icon: Clock3 },
+    { label: 'Current streak', value: `${dashboardQuery.data?.current_streak ?? activity?.current_streak ?? 0} days`, Icon: Flame },
+    { label: 'Completed courses', value: String(dashboardQuery.data?.completed_resources ?? (completedQuery.data?.length || 0)), Icon: CheckCircle2 },
+    { label: 'Active learning days', value: String(dashboardQuery.data?.weekly_activity ? (dashboardQuery.data.weekly_activity.reduce((s: any, d: any) => s + (d.resources_completed || 0), 0)) : (activity?.total_active_days || 0)), Icon: Clock3 },
+    { label: 'Learning hours', value: `${dashboardQuery.data?.hours_learned ?? Math.round((completedQuery.data || []).reduce((sum, item) => sum + (item.time_spent_hours || 0), 0))}h`, Icon: Clock3 },
   ];
 
   return <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
