@@ -57,8 +57,18 @@ class GroqProvider(BaseAIProvider):
         return await DemoProvider().extract_profile(user_input)
 
     async def generate_explanation(self, context: Dict[str, Any]) -> str:
-        system = "You are an AI learning mentor. Generate concise, specific explanations for resource recommendations. Use markdown. Max 100 words."
-        user = f"Resource: {context.get('resource', {}).get('title', 'Resource')}. Goal: {context.get('profile', {}).get('target_role', 'role')}. Explain why this is recommended."
+        system = "You are an AI learning mentor. Generate concise, specific explanations for resource recommendations. Use markdown. Max 120 words. Be specific about why this resource fits the learner's gap, format, and duration."
+        resource = context.get('resource', {}) or {}
+        profile = context.get('profile', {}) or {}
+        user_parts = [f"Resource: {resource.get('title', 'Resource')}"]
+        if resource.get('provider'):
+            user_parts.append(f"Provider: {resource.get('provider')}")
+        if resource.get('format'):
+            user_parts.append(f"Format: {resource.get('format')}")
+        if resource.get('duration_hours'):
+            user_parts.append(f"Duration: {resource.get('duration_hours')}h")
+        user_parts.append(f"Learner goal: {profile.get('target_role', 'your target role')}")
+        user = '. '.join(user_parts) + '. Explain concisely why this resource is recommended, referencing the learner\'s top skill gaps.'
         try:
             return await self._generate(system, user)
         except Exception:
@@ -67,10 +77,54 @@ class GroqProvider(BaseAIProvider):
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
         profile = context.get("profile", {})
-        system = f"You are an encouraging AI learning mentor. Learner is targeting: {profile.get('target_role', 'Software Engineer')}. Be concise and actionable. Use markdown. Max 150 words."
+        skill_gaps = context.get("skill_gaps", [])
+        roadmap = context.get("roadmap")
+
+        # Build a concise system prompt including profile, top gaps, and roadmap state
+        top_gaps = ", ".join([g.get("skill_name") for g in skill_gaps[:3]]) if skill_gaps else "core skills"
+        roadmap_summary = ""
+        if roadmap:
+            rp = roadmap
+            roadmap_summary = f" Roadmap: {rp.get('title', '')}, phases: {rp.get('total_phases')}"
+
+        system = (
+            f"You are an encouraging AI learning mentor. Learner is targeting: {profile.get('target_role', 'Software Engineer')}."
+            f" Top gaps: {top_gaps}.{roadmap_summary} Be concise and actionable. Use markdown. Max 150 words."
+        )
+
+        # Build user content by concatenating recent messages, while extracting explicit constraints
         last_msg = messages[-1]["content"] if messages else "Hello"
+        # detect simple time constraint like '30 minutes', '1 hour', 'half hour'
+        time_constraint = None
+        import re
+        time_patterns = [r"(\d+)\s*minutes?", r"(\d+)\s*mins?", r"(\d+)\s*hours?", r"half\s*hour", r"30\s*min"]
+        for m in messages[::-1]:
+            text = m.get("content", "")
+            for pat in time_patterns:
+                match = re.search(pat, text, re.IGNORECASE)
+                if match:
+                    time_constraint = match.group(0)
+                    break
+            if time_constraint:
+                break
+
+        # detect struggle mention
+        struggle = None
+        struggle_keywords = ["struggling", "difficult", "hard", "confused", "don't understand", "don't get"]
+        for m in messages[::-1]:
+            text = m.get("content", "").lower()
+            if any(k in text for k in struggle_keywords):
+                struggle = text
+                break
+
+        user_content = last_msg
+        if time_constraint:
+            user_content = f"[time_constraint: {time_constraint}] {user_content}"
+        if struggle:
+            user_content = f"[struggling_about: {struggle}] {user_content}"
+
         try:
-            return await self._generate(system, last_msg)
+            return await self._generate(system, user_content)
         except Exception:
             from backend.app.ai.demo_provider import DemoProvider
             return await DemoProvider().chat(messages, context)

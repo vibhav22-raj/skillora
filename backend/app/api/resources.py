@@ -162,6 +162,6 @@ def _resource_to_dict(r: LearningResource) -> dict:
         "format": r.format,
         "rating": r.rating,
         "tags": r.tags,
-        "is_free": r.is_free,
+        "is_free": bool(r.is_free),
         "prerequisites": r.prerequisites,
     }

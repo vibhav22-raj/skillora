@@ -75,7 +75,7 @@ async def get_recommendations(
             "url": resource.url,
             "category": resource.category,
             "rating": resource.rating,
-            "is_free": resource.is_free,
+            "is_free": bool(resource.is_free),
             "description": resource.description,
         }
         scores = score_resource(resource_dict, profile_dict, skill_gaps, user_skill_names)

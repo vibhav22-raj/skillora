@@ -74,12 +74,34 @@ async def get_recommended_projects(
     projects_result = await db.execute(select(Project))
     all_projects = projects_result.scalars().all()
 
-    # Score projects by skill overlap
+    # Score projects by skill overlap, gap coverage and role relevance
+    from backend.app.recommender.skill_gap import calculate_gaps
+
+    current_skills_dict = {s: 0 for s in user_skill_names}
+    skill_gaps = []
+    if profile and profile.target_role:
+        skill_gaps = calculate_gaps(profile.target_role, current_skills_dict)
+    gap_skill_names = [g['skill_name'] for g in skill_gaps[:5]]
+
     scored = []
     for project in all_projects:
         overlap = sum(1 for s in project.skills if s in user_skill_names)
         total_skills = len(project.skills) if project.skills else 1
-        score = overlap / total_skills
+        overlap_score = overlap / total_skills
+
+        # How many project skills cover the user's high-priority gaps
+        gap_coverage = sum(1 for s in project.skills if s in gap_skill_names)
+
+        # Role/domain match heuristic
+        role_match = 0
+        tgt = (profile.target_role or "").lower() if profile else ""
+        if tgt and project.domain and tgt in (project.domain or "").lower():
+            role_match = 1
+        if tgt and project.title and tgt in project.title.lower():
+            role_match = max(role_match, 1)
+
+        # Weighted score
+        score = overlap_score + (gap_coverage * 0.8) + (role_match * 0.5)
         scored.append((score, project))
 
     scored.sort(key=lambda x: x[0], reverse=True)

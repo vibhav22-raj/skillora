@@ -14,10 +14,45 @@ router = APIRouter(prefix="/api/assessments", tags=["assessments"])
 
 
 @router.get("/", response_model=ApiResponse)
-async def get_assessments(db: AsyncSession = Depends(get_db)):
-    """Get all available assessments."""
+async def get_assessments(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Get all available assessments, ordered by user's skill gap priority."""
+    # Fetch assessments
     result = await db.execute(select(Assessment))
     assessments = result.scalars().all()
+
+    # Build user's skill gaps
+    from backend.app.recommender.skill_gap import calculate_gaps
+    from backend.app.models import LearnerProfile, UserSkill
+
+    profile_result = await db.execute(
+        select(LearnerProfile).where(LearnerProfile.user_id == current_user.id)
+    )
+    profile = profile_result.scalar_one_or_none()
+
+    skills_result = await db.execute(
+        select(UserSkill).where(UserSkill.user_id == current_user.id)
+    )
+    user_skills = skills_result.scalars().all()
+    current_skills = {us.skill_name: us.current_level for us in user_skills}
+
+    skill_gaps = []
+    if profile and profile.target_role:
+        skill_gaps = calculate_gaps(profile.target_role, current_skills)
+
+    # Priority mapping -> numeric weight
+    priority_weight = {"critical": 3, "high": 2, "medium": 1, "low": 0}
+    gap_priority = {g['skill_name']: priority_weight.get(g.get('priority', '').lower(), 0) for g in skill_gaps}
+
+    # Decorate assessments with priority weight
+    decorated = []
+    for a in assessments:
+        p = gap_priority.get(a.skill_name, 0)
+        decorated.append((p, a))
+
+    # Sort by priority desc, then by estimated_minutes asc
+    decorated.sort(key=lambda x: (-x[0], x[1].estimated_minutes))
+
+    sorted_assessments = [a for _, a in decorated]
 
     return ApiResponse(
         success=True,
@@ -30,7 +65,7 @@ async def get_assessments(db: AsyncSession = Depends(get_db)):
                 "passing_score": a.passing_score,
                 "estimated_minutes": a.estimated_minutes,
             }
-            for a in assessments
+            for a in sorted_assessments
         ],
     )
 
