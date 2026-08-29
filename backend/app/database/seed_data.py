@@ -6,8 +6,8 @@ All free, legitimate resources from reputable providers.
 import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.database.base import AsyncSessionLocal
-from backend.app.services.auth_service import get_password_hash
+from app.database.base import AsyncSessionLocal
+from app.services.auth_service import get_password_hash
 
 
 def gen_id():
@@ -376,7 +376,7 @@ async def seed_database():
 
 
 async def _seed_skills(db: AsyncSession):
-    from backend.app.models import Skill
+    from app.models import Skill
     from sqlalchemy import select
 
     result = await db.execute(select(Skill).limit(1))
@@ -399,7 +399,7 @@ async def _seed_skills(db: AsyncSession):
 
 
 async def _seed_resources(db: AsyncSession):
-    from backend.app.models import LearningResource
+    from app.models import LearningResource
     from sqlalchemy import select
 
     result = await db.execute(select(LearningResource).limit(1))
@@ -429,7 +429,7 @@ async def _seed_resources(db: AsyncSession):
 
 
 async def _seed_projects(db: AsyncSession):
-    from backend.app.models import Project
+    from app.models import Project
     from sqlalchemy import select
 
     result = await db.execute(select(Project).limit(1))
@@ -461,7 +461,7 @@ async def _seed_projects(db: AsyncSession):
 
 
 async def _seed_assessments(db: AsyncSession):
-    from backend.app.models import Assessment
+    from app.models import Assessment
     from sqlalchemy import select
 
     for a in ASSESSMENTS_DATA:
@@ -493,11 +493,11 @@ async def _seed_assessments(db: AsyncSession):
 
 
 async def _seed_demo_user(db: AsyncSession):
-    from backend.app.models import User, LearnerProfile, UserSkill, Roadmap, Skill
+    from app.models import User, LearnerProfile, UserSkill, Roadmap, Skill
     from sqlalchemy import select
 
     # Check if demo user already exists
-    result = await db.execute(select(User).where(User.email == "demo@learnpath.ai"))
+    result = await db.execute(select(User).where(User.email == "demo@skillora.io"))
     if result.scalar_one_or_none():
         return
 
@@ -505,8 +505,8 @@ async def _seed_demo_user(db: AsyncSession):
     demo_user = User(
         id=gen_id(),
         name="Alex Chen",
-        email="demo@learnpath.ai",
-        hashed_password=get_password_hash("Demo@12345"),
+        email="demo@skillora.io",
+        hashed_password=get_password_hash("DemoPass123"),
         is_active=True,
         is_demo=True,
     )
@@ -645,4 +645,4 @@ async def _seed_demo_user(db: AsyncSession):
     )
     db.add(demo_roadmap)
     await db.flush()
-    print("[Seed] Demo user created: demo@learnpath.ai / Demo@12345")
+    print("[Seed] Demo user created: demo@skillora.io / DemoPass123")

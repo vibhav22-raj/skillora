@@ -4,13 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timedelta
 
-from backend.app.database.base import get_db
-from backend.app.models import User, LearnerProfile, UserSkill, Progress, Roadmap, LearningResource
-from backend.app.schemas import ApiResponse
-from backend.app.services.auth_service import get_current_user
-from backend.app.recommender.skill_gap import calculate_gaps
-from backend.app.recommender.next_best_action import get_next_best_action, get_today_focus
-from backend.app.recommender.scorer import score_resource
+from app.database.base import get_db
+from app.models import User, LearnerProfile, UserSkill, Progress, Roadmap, LearningResource
+from app.schemas import ApiResponse
+from app.services.auth_service import get_current_user
+from app.recommender.skill_gap import calculate_gaps
+from app.recommender.next_best_action import get_next_best_action, get_today_focus
+from app.recommender.scorer import score_resource
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 

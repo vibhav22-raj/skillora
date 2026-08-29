@@ -3,8 +3,8 @@ Roadmap Generator — Creates personalized multi-phase learning roadmaps.
 Dynamically generates phases based on skill gaps, timeline, and preferences.
 """
 from typing import Dict, List, Optional, Any
-from backend.app.recommender.skill_gap import ROLE_SKILLS, calculate_gaps
-from backend.app.recommender.prerequisite_graph import get_learning_order
+from app.recommender.skill_gap import ROLE_SKILLS, calculate_gaps
+from app.recommender.prerequisite_graph import get_learning_order
 
 
 # ─── Phase Templates per Role ──────────────────────────────────────────────

@@ -5,14 +5,14 @@ from sqlalchemy import select, delete
 import uuid
 from datetime import datetime
 
-from backend.app.database.base import get_db
-from backend.app.models import User, LearnerProfile, UserSkill, LearningResource, Roadmap, Project, Skill
-from backend.app.schemas import ApiResponse, LearningPathGenerate, LearningPathAdapt
-from backend.app.services.auth_service import get_current_user
-from backend.app.recommender.skill_gap import calculate_gaps
-from backend.app.recommender.roadmap_generator import generate_roadmap, adapt_roadmap_for_time_change
-from backend.app.recommender.scorer import score_resource
-from backend.app.ai.provider_factory import get_ai_provider
+from app.database.base import get_db
+from app.models import User, LearnerProfile, UserSkill, LearningResource, Roadmap, Project, Skill
+from app.schemas import ApiResponse, LearningPathGenerate, LearningPathAdapt
+from app.services.auth_service import get_current_user
+from app.recommender.skill_gap import calculate_gaps
+from app.recommender.roadmap_generator import generate_roadmap, adapt_roadmap_for_time_change
+from app.recommender.scorer import score_resource
+from app.ai.provider_factory import get_ai_provider
 
 router = APIRouter(prefix="/api/learning-path", tags=["learning-path"])
 
@@ -83,7 +83,7 @@ async def generate_learning_path(
                             current_skills_dict[k] = int(v)
         except Exception:
             # Fallback: use DemoProvider heuristic if AI fails
-            from backend.app.ai.demo_provider import DemoProvider
+            from app.ai.demo_provider import DemoProvider
             demo = DemoProvider()
             try:
                 extracted = await demo.extract_profile(request.free_text_goal)

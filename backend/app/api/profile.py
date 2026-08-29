@@ -4,12 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid
 
-from backend.app.database.base import get_db
-from backend.app.models import User, LearnerProfile, UserSkill, Skill
-from backend.app.schemas import ApiResponse, ProfileUpdate, ProfileOnboarding, ProfileResponse
-from backend.app.services.auth_service import get_current_user
-from backend.app.ai.provider_factory import get_ai_provider
-from backend.app.recommender.skill_gap import calculate_gaps
+from app.database.base import get_db
+from app.models import User, LearnerProfile, UserSkill, Skill
+from app.schemas import ApiResponse, ProfileUpdate, ProfileOnboarding, ProfileResponse
+from app.services.auth_service import get_current_user
+from app.ai.provider_factory import get_ai_provider
+from app.recommender.skill_gap import calculate_gaps
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
 
@@ -137,7 +137,7 @@ async def get_activity(
     db: AsyncSession = Depends(get_db),
 ):
     """Get daily learning activity for heatmap (last 365 days)."""
-    from backend.app.models import Progress, AssessmentAttempt
+    from app.models import Progress, AssessmentAttempt
     from datetime import date, timedelta
     from collections import defaultdict
 
@@ -225,7 +225,7 @@ async def get_completed_courses(
     db: AsyncSession = Depends(get_db),
 ):
     """Get user's completed learning resources."""
-    from backend.app.models import Progress, LearningResource
+    from app.models import Progress, LearningResource
 
     result = await db.execute(
         select(Progress, LearningResource)

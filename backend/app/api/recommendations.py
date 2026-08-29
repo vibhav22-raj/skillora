@@ -5,14 +5,14 @@ from sqlalchemy import select
 import uuid
 from datetime import datetime
 
-from backend.app.database.base import get_db
-from backend.app.models import User, LearningResource, LearnerProfile, UserSkill, Recommendation, Feedback
-from backend.app.schemas import ApiResponse, FeedbackCreate
-from backend.app.services.auth_service import get_current_user
-from backend.app.recommender.skill_gap import calculate_gaps
-from backend.app.recommender.scorer import score_resource
-from backend.app.recommender.next_best_action import get_next_best_action
-from backend.app.ai.provider_factory import get_ai_provider
+from app.database.base import get_db
+from app.models import User, LearningResource, LearnerProfile, UserSkill, Recommendation, Feedback
+from app.schemas import ApiResponse, FeedbackCreate
+from app.services.auth_service import get_current_user
+from app.recommender.skill_gap import calculate_gaps
+from app.recommender.scorer import score_resource
+from app.recommender.next_best_action import get_next_best_action
+from app.ai.provider_factory import get_ai_provider
 
 router = APIRouter(prefix="/api/recommendations", tags=["recommendations"])
 
@@ -104,7 +104,7 @@ async def get_next_action(
     db: AsyncSession = Depends(get_db),
 ):
     """Get the single best next action for the user."""
-    from backend.app.models import Roadmap, Progress as ProgressModel
+    from app.models import Roadmap, Progress as ProgressModel
     profile_dict, skill_gaps, _ = await _get_user_context(current_user, db)
 
     # Get roadmap phases

@@ -5,10 +5,10 @@ from sqlalchemy import select
 import uuid
 from datetime import datetime
 
-from backend.app.database.base import get_db
-from backend.app.models import User, Assessment, AssessmentAttempt
-from backend.app.schemas import ApiResponse, AssessmentSubmit
-from backend.app.services.auth_service import get_current_user
+from app.database.base import get_db
+from app.models import User, Assessment, AssessmentAttempt
+from app.schemas import ApiResponse, AssessmentSubmit
+from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/api/assessments", tags=["assessments"])
 
@@ -21,8 +21,8 @@ async def get_assessments(current_user: User = Depends(get_current_user), db: As
     assessments = result.scalars().all()
 
     # Build user's skill gaps
-    from backend.app.recommender.skill_gap import calculate_gaps
-    from backend.app.models import LearnerProfile, UserSkill
+    from app.recommender.skill_gap import calculate_gaps
+    from app.models import LearnerProfile, UserSkill
 
     profile_result = await db.execute(
         select(LearnerProfile).where(LearnerProfile.user_id == current_user.id)

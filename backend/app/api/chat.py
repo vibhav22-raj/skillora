@@ -5,12 +5,12 @@ from sqlalchemy import select
 import uuid
 from datetime import datetime
 
-from backend.app.database.base import get_db
-from backend.app.models import User, ChatSession, ChatMessage, LearnerProfile, UserSkill, Roadmap
-from backend.app.schemas import ApiResponse, ChatMessageRequest, ChatSessionCreate
-from backend.app.services.auth_service import get_current_user
-from backend.app.recommender.skill_gap import calculate_gaps
-from backend.app.ai.provider_factory import get_ai_provider
+from app.database.base import get_db
+from app.models import User, ChatSession, ChatMessage, LearnerProfile, UserSkill, Roadmap
+from app.schemas import ApiResponse, ChatMessageRequest, ChatSessionCreate
+from app.services.auth_service import get_current_user
+from app.recommender.skill_gap import calculate_gaps
+from app.ai.provider_factory import get_ai_provider
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -41,7 +41,33 @@ async def _build_context(user: User, db: AsyncSession) -> dict:
     if profile_dict.get("target_role"):
         skill_gaps = calculate_gaps(profile_dict["target_role"], current_skills)
 
-    return {"profile": profile_dict, "skill_gaps": skill_gaps}
+    # Include user's active roadmap and a short roadmap summary so AI can reference current phase/progress
+    roadmap_summary = None
+    roadmap_result = await db.execute(
+        select(Roadmap).where(Roadmap.user_id == user.id, Roadmap.is_active == True)
+    )
+    roadmap = roadmap_result.scalar_one_or_none()
+    if roadmap:
+        total_phases = len(roadmap.phases) if roadmap.phases else 0
+        # attempt to determine current phase by status or first in_progress
+        current_phase = None
+        if roadmap.phases:
+            for p in roadmap.phases:
+                if p.get('status') == 'in_progress':
+                    current_phase = p
+                    break
+            if not current_phase and len(roadmap.phases) > 0:
+                # fallback: first phase
+                current_phase = roadmap.phases[0]
+        roadmap_summary = {
+            "id": roadmap.id,
+            "title": roadmap.title,
+            "total_phases": total_phases,
+            "total_weeks": getattr(roadmap, 'total_weeks', None),
+            "current_phase": current_phase,
+        }
+
+    return {"profile": profile_dict, "skill_gaps": skill_gaps, "roadmap": roadmap_summary}
 
 
 @router.post("/message", response_model=ApiResponse)

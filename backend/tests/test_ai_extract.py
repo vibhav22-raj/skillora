@@ -1,5 +1,5 @@
 import asyncio
-from backend.app.ai.demo_provider import DemoProvider
+from app.ai.demo_provider import DemoProvider
 
 
 def test_demo_extract_profile_basic():

@@ -7,8 +7,8 @@ import json
 import re
 from typing import Dict, List, Any
 
-from backend.app.ai.base import BaseAIProvider
-from backend.app.config.settings import settings
+from app.ai.base import BaseAIProvider
+from app.config.settings import settings
 
 
 class GeminiProvider(BaseAIProvider):
@@ -68,7 +68,7 @@ Return this exact JSON structure:
         except Exception:
             pass
         # Fallback to demo
-        from backend.app.ai.demo_provider import DemoProvider
+        from app.ai.demo_provider import DemoProvider
         return await DemoProvider().extract_profile(user_input)
 
     async def generate_explanation(self, context: Dict[str, Any]) -> str:
@@ -90,7 +90,7 @@ Explain why this resource specifically helps close their skill gaps and advances
         try:
             return await self._generate(prompt)
         except Exception:
-            from backend.app.ai.demo_provider import DemoProvider
+            from app.ai.demo_provider import DemoProvider
             return await DemoProvider().generate_explanation(context)
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
@@ -144,7 +144,7 @@ Use markdown formatting. Keep responses under 300 words unless a detailed explan
         try:
             return await self._generate(prompt)
         except Exception:
-            from backend.app.ai.demo_provider import DemoProvider
+            from app.ai.demo_provider import DemoProvider
             return await DemoProvider().chat(messages, context)
 
 
@@ -162,5 +162,5 @@ Return: {{"action": "one of: increase_difficulty/add_prerequisites/reduce_weekly
                 return json.loads(json_match.group())
         except Exception:
             pass
-        from backend.app.ai.demo_provider import DemoProvider
+        from app.ai.demo_provider import DemoProvider
         return await DemoProvider().interpret_feedback(feedback, context)

@@ -5,12 +5,12 @@ from sqlalchemy import select, or_
 import uuid
 from datetime import datetime
 
-from backend.app.database.base import get_db
-from backend.app.models import User, LearningResource, Progress, LearnerProfile, UserSkill
-from backend.app.schemas import ApiResponse
-from backend.app.services.auth_service import get_current_user
-from backend.app.recommender.skill_gap import calculate_gaps
-from backend.app.recommender.scorer import score_resource
+from app.database.base import get_db
+from app.models import User, LearningResource, Progress, LearnerProfile, UserSkill
+from app.schemas import ApiResponse
+from app.services.auth_service import get_current_user
+from app.recommender.skill_gap import calculate_gaps
+from app.recommender.scorer import score_resource
 
 router = APIRouter(prefix="/api/resources", tags=["resources"])
 

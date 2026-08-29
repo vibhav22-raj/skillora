@@ -5,10 +5,10 @@ from sqlalchemy import select, func
 import uuid
 from datetime import datetime, timedelta
 
-from backend.app.database.base import get_db
-from backend.app.models import User, Progress, LearningResource, Roadmap
-from backend.app.schemas import ApiResponse, ProgressUpdate
-from backend.app.services.auth_service import get_current_user
+from app.database.base import get_db
+from app.models import User, Progress, LearningResource, Roadmap
+from app.schemas import ApiResponse, ProgressUpdate
+from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
 

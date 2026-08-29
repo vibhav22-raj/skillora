@@ -2,8 +2,8 @@
 AI Provider Factory — Returns the configured provider with fallback chain.
 Chain: configured_provider -> demo_provider
 """
-from backend.app.ai.base import BaseAIProvider
-from backend.app.config.settings import settings
+from app.ai.base import BaseAIProvider
+from app.config.settings import settings
 
 _provider_instance: BaseAIProvider = None
 
@@ -21,13 +21,13 @@ def get_ai_provider() -> BaseAIProvider:
     provider_name = settings.AI_PROVIDER.lower()
 
     if settings.DEMO_MODE or provider_name == "demo":
-        from backend.app.ai.demo_provider import DemoProvider
+        from app.ai.demo_provider import DemoProvider
         _provider_instance = DemoProvider()
         return _provider_instance
 
     if provider_name == "gemini":
         try:
-            from backend.app.ai.gemini_provider import GeminiProvider
+            from app.ai.gemini_provider import GeminiProvider
             provider = GeminiProvider()
             if provider.model:
                 _provider_instance = provider
@@ -37,7 +37,7 @@ def get_ai_provider() -> BaseAIProvider:
 
     elif provider_name == "groq":
         try:
-            from backend.app.ai.groq_provider import GroqProvider
+            from app.ai.groq_provider import GroqProvider
             provider = GroqProvider()
             if provider.client:
                 _provider_instance = provider
@@ -46,7 +46,7 @@ def get_ai_provider() -> BaseAIProvider:
             print(f"[ProviderFactory] Groq init failed: {e}. Falling back to Demo.")
 
     # Always fall back to demo
-    from backend.app.ai.demo_provider import DemoProvider
+    from app.ai.demo_provider import DemoProvider
     _provider_instance = DemoProvider()
     print(f"[ProviderFactory] Using DemoProvider (provider={provider_name})")
     return _provider_instance

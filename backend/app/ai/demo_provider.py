@@ -5,7 +5,7 @@ Returns realistic, contextual responses based on user profile.
 """
 import json
 from typing import Dict, List, Any
-from backend.app.ai.base import BaseAIProvider
+from app.ai.base import BaseAIProvider
 
 
 class DemoProvider(BaseAIProvider):

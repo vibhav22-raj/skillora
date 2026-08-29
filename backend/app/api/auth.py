@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid
 
-from backend.app.database.base import get_db
-from backend.app.models import User, LearnerProfile
-from backend.app.schemas import UserCreate, UserLogin, ApiResponse, UserResponse
-from backend.app.services.auth_service import (
+from app.database.base import get_db
+from app.models import User, LearnerProfile
+from app.schemas import UserCreate, UserLogin, ApiResponse, UserResponse
+from app.services.auth_service import (
     get_password_hash, verify_password, create_access_token, get_current_user
 )
 

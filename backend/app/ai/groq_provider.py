@@ -7,8 +7,8 @@ import json
 import re
 from typing import Dict, List, Any
 
-from backend.app.ai.base import BaseAIProvider
-from backend.app.config.settings import settings
+from app.ai.base import BaseAIProvider
+from app.config.settings import settings
 
 
 class GroqProvider(BaseAIProvider):
@@ -53,7 +53,7 @@ class GroqProvider(BaseAIProvider):
                 return json.loads(json_match.group())
         except Exception:
             pass
-        from backend.app.ai.demo_provider import DemoProvider
+        from app.ai.demo_provider import DemoProvider
         return await DemoProvider().extract_profile(user_input)
 
     async def generate_explanation(self, context: Dict[str, Any]) -> str:
@@ -72,7 +72,7 @@ class GroqProvider(BaseAIProvider):
         try:
             return await self._generate(system, user)
         except Exception:
-            from backend.app.ai.demo_provider import DemoProvider
+            from app.ai.demo_provider import DemoProvider
             return await DemoProvider().generate_explanation(context)
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
@@ -126,7 +126,7 @@ class GroqProvider(BaseAIProvider):
         try:
             return await self._generate(system, user_content)
         except Exception:
-            from backend.app.ai.demo_provider import DemoProvider
+            from app.ai.demo_provider import DemoProvider
             return await DemoProvider().chat(messages, context)
 
     async def interpret_feedback(self, feedback: str, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -138,5 +138,5 @@ class GroqProvider(BaseAIProvider):
                 return json.loads(json_match.group())
         except Exception:
             pass
-        from backend.app.ai.demo_provider import DemoProvider
+        from app.ai.demo_provider import DemoProvider
         return await DemoProvider().interpret_feedback(feedback, context)

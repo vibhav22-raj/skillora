@@ -4,7 +4,7 @@ Tests: auth, recommendation scoring, skill gap engine.
 """
 import pytest
 import asyncio
-from backend.app.recommender.scorer import (
+from app.recommender.scorer import (
     calculate_goal_relevance,
     calculate_skill_gap_relevance,
     calculate_prerequisite_fit,
@@ -14,14 +14,14 @@ from backend.app.recommender.scorer import (
     calculate_total_score,
     score_resource,
 )
-from backend.app.recommender.skill_gap import calculate_gaps, ROLE_SKILLS
-from backend.app.recommender.prerequisite_graph import (
+from app.recommender.skill_gap import calculate_gaps, ROLE_SKILLS
+from app.recommender.prerequisite_graph import (
     get_prerequisites,
     get_learning_order,
     check_prerequisite_fit,
 )
-from backend.app.recommender.roadmap_generator import generate_roadmap
-from backend.app.services.auth_service import get_password_hash, verify_password, create_access_token, decode_token
+from app.recommender.roadmap_generator import generate_roadmap
+from app.services.auth_service import get_password_hash, verify_password, create_access_token, decode_token
 
 
 # ─── Auth Tests ────────────────────────────────────────────────────────────

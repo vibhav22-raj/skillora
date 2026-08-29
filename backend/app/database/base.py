@@ -1,7 +1,7 @@
 """Database base configuration with async SQLAlchemy."""
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
-from backend.app.config.settings import settings
+from app.config.settings import settings
 
 
 engine = create_async_engine(
@@ -38,6 +38,6 @@ async def get_db() -> AsyncSession:
 async def create_tables():
     """Create all tables."""
     async with engine.begin() as conn:
-        import backend.app.models  # noqa — registers all models with Base.metadata
+        import app.models  # noqa — registers all models with Base.metadata
         await conn.run_sync(Base.metadata.create_all)
 

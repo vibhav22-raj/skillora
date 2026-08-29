@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.app.database.base import get_db
-from backend.app.models import User, Project, LearnerProfile, UserSkill
-from backend.app.schemas import ApiResponse
-from backend.app.services.auth_service import get_current_user
+from app.database.base import get_db
+from app.models import User, Project, LearnerProfile, UserSkill
+from app.schemas import ApiResponse
+from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -75,7 +75,7 @@ async def get_recommended_projects(
     all_projects = projects_result.scalars().all()
 
     # Score projects by skill overlap, gap coverage and role relevance
-    from backend.app.recommender.skill_gap import calculate_gaps
+    from app.recommender.skill_gap import calculate_gaps
 
     current_skills_dict = {s: 0 for s in user_skill_names}
     skill_gaps = []

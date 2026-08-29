@@ -8,8 +8,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.app.config.settings import settings
-from backend.app.database.base import get_db
+from app.config.settings import settings
+from app.database.base import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -43,7 +43,7 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ):
     """FastAPI dependency to get current authenticated user."""
-    from backend.app.models import User
+    from app.models import User
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

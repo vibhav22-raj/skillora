@@ -11,8 +11,8 @@ Score = (
 ) * 100
 """
 from typing import Dict, List, Optional, Any
-from backend.app.recommender.prerequisite_graph import check_prerequisite_fit
-from backend.app.recommender.skill_gap import ROLE_SKILLS
+from app.recommender.prerequisite_graph import check_prerequisite_fit
+from app.recommender.skill_gap import ROLE_SKILLS
 
 
 # ─── Scoring Weights ───────────────────────────────────────────────────────
