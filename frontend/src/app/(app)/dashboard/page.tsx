@@ -145,7 +145,7 @@ export default function DashboardPage() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Next Best Action */}
         {data.next_best_action && (
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+          <motion.div id="walk-next-best-action" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
             className="bg-gradient-to-br from-indigo-900/50 to-violet-900/50 border border-indigo-700/50 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Zap className="h-5 w-5 text-indigo-400" />
