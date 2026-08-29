@@ -139,8 +139,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Page content — padding-bottom on mobile to avoid overlap with bottom nav */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          {children}
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 space-shell">
+          <div className="p-6 max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
 
         {/* Mobile bottom navigation */}
