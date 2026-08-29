@@ -224,7 +224,6 @@ export default function HomePage() {
           <span className="font-semibold text-slate-300">LearnPath AI</span>
         </div>
         <p>Built for HCLTech Amplified Hackathon · AI-Powered · Open Source</p>
-        <p className="mt-1">Demo: <code className="bg-slate-900 px-2 py-0.5 rounded">demo@learnpath.ai</code> / <code className="bg-slate-900 px-2 py-0.5 rounded">Demo@12345</code></p>
       </footer>
     </div>
   );

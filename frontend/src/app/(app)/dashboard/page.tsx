@@ -58,10 +58,15 @@ export default function DashboardPage() {
   });
 
   if (isLoading) return (
-    <div className="flex items-center justify-center h-full min-h-screen">
-      <div className="text-center">
-        <div className="h-10 w-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-slate-400">Loading your dashboard...</p>
+    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-pulse">
+      <div className="h-10 bg-slate-800 rounded-xl w-1/3" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 bg-slate-900 border border-slate-800 rounded-2xl" />)}
+      </div>
+      <div className="h-24 bg-slate-900 border border-slate-800 rounded-2xl" />
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
+        <div className="h-48 bg-slate-900 border border-slate-800 rounded-2xl" />
       </div>
     </div>
   );
@@ -144,26 +149,33 @@ export default function DashboardPage() {
       {/* Two columns: NBA + Today's Focus */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Next Best Action */}
-        {data.next_best_action && (
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-br from-indigo-900/50 to-violet-900/50 border border-indigo-700/50 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Zap className="h-5 w-5 text-indigo-400" />
-              <h2 className="font-semibold text-white">Next Best Action</h2>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+          className="bg-gradient-to-br from-indigo-900/50 to-violet-900/50 border border-indigo-700/50 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="h-5 w-5 text-indigo-400" />
+            <h2 className="font-semibold text-white">Next Best Action</h2>
+          </div>
+          {data.next_best_action ? (
+            <>
+              <h3 className="text-lg font-bold text-white mb-2">{data.next_best_action.title}</h3>
+              <p className="text-slate-300 text-sm leading-relaxed mb-4">{data.next_best_action.description}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 text-sm">⏱ ~{data.next_best_action.estimated_minutes} min</span>
+                <Link href={data.next_best_action.type === 'assessment' ? '/assessment' : '/recommendations'}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all flex items-center gap-1">
+                  <Play className="h-4 w-4" />
+                  Start Now
+                </Link>
+              </div>
+              <p className="text-slate-500 text-xs mt-3 italic">&ldquo;{data.next_best_action.reason}&rdquo;</p>
+            </>
+          ) : (
+            <div className="text-slate-300 text-sm">
+              <p className="mb-3">Complete onboarding to get a personalized next step.</p>
+              <Link href="/onboarding" className="inline-flex bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg">Set up your goal</Link>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">{data.next_best_action.title}</h3>
-            <p className="text-slate-300 text-sm leading-relaxed mb-4">{data.next_best_action.description}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400 text-sm">⏱ ~{data.next_best_action.estimated_minutes} min</span>
-              <Link href={data.next_best_action.type === 'assessment' ? '/assessment' : '/recommendations'}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all flex items-center gap-1">
-                <Play className="h-4 w-4" />
-                Start Now
-              </Link>
-            </div>
-            <p className="text-slate-500 text-xs mt-3 italic">"{data.next_best_action.reason}"</p>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
 
         {/* Today's Focus */}
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}

@@ -3,15 +3,12 @@
 ## Local Development
 
 ```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload
+# From repository root — keep this terminal open
+python -m uvicorn backend.app.main:app --reload --port 8000
 
 # Frontend (new terminal)
 cd frontend
-cp .env.local.example .env.local
+copy .env.local.example .env.local
 npm install
 npm run dev
 ```

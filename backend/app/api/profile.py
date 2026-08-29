@@ -50,7 +50,20 @@ async def update_profile(
         profile = LearnerProfile(id=str(uuid.uuid4()), user_id=current_user.id)
         db.add(profile)
 
-    for field, value in update_data.model_dump(exclude_none=True).items():
+    payload = update_data.model_dump(exclude_unset=True)
+
+    if "email" in payload and payload["email"] != current_user.email:
+        existing_result = await db.execute(
+            select(User).where(User.email == payload["email"], User.id != current_user.id)
+        )
+        if existing_result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Email already registered")
+        current_user.email = payload.pop("email")
+
+    if "name" in payload:
+        current_user.name = payload.pop("name")
+
+    for field, value in payload.items():
         setattr(profile, field, value)
 
     await db.commit()
@@ -253,4 +266,3 @@ async def get_completed_courses(
         })
 
     return ApiResponse(success=True, data=completed)
-

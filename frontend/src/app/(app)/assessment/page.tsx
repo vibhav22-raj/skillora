@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { assessmentAPI } from '@/lib/api';
@@ -14,6 +14,15 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [currentQ, setCurrentQ] = useState(0);
 
+  const sessionQuestions = useMemo(() => {
+    const shuffled = [...assessment.questions];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, 15);
+  }, [assessment]);
+
   const submitMutation = useMutation({
     mutationFn: () => assessmentAPI.submit(assessment.id, answers),
     onSuccess: (res) => {
@@ -26,9 +35,8 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
     onError: () => toast.error('Could not submit assessment. Please try again.'),
   });
 
-  const question = assessment.questions[currentQ];
-  const totalQ = assessment.questions.length;
-  const progress = (Object.keys(answers).length / totalQ) * 100;
+  const question = sessionQuestions[currentQ];
+  const totalQ = sessionQuestions.length;
   const allAnswered = Object.keys(answers).length === totalQ;
 
   if (submitted && result) {
@@ -46,6 +54,22 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
         </p>
         <p className="text-slate-300 leading-relaxed mb-4">{result.feedback}</p>
         <p className="text-slate-400 text-sm mb-2">{result.correct_answers}/{result.total_questions} correct</p>
+        <div className="grid sm:grid-cols-2 gap-3 text-left mb-4">
+          <div className="bg-slate-800 rounded-xl p-4">
+            <p className="text-emerald-300 font-medium text-sm mb-2">Strong areas</p>
+            <p className="text-slate-400 text-sm">{result.strong_areas?.length ? result.strong_areas.join(', ') : 'Keep practicing to build clear strengths.'}</p>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-4">
+            <p className="text-amber-300 font-medium text-sm mb-2">Weak areas</p>
+            <p className="text-slate-400 text-sm">{result.weak_areas?.length ? result.weak_areas.join(', ') : 'No major weak areas in this attempt.'}</p>
+          </div>
+        </div>
+        {result.next_recommended_action && (
+          <div className="bg-indigo-950/60 border border-indigo-800 rounded-xl p-4 text-left mb-4">
+            <p className="text-indigo-200 font-medium text-sm mb-1">Next recommended action</p>
+            <p className="text-slate-300 text-sm">{result.next_recommended_action}</p>
+          </div>
+        )}
         {result.recommendations.length > 0 && (
           <div className="bg-slate-800 rounded-xl p-4 text-left mt-4">
             <p className="text-slate-300 font-medium text-sm mb-2">Recommendations:</p>
@@ -142,7 +166,7 @@ export default function AssessmentPage() {
         </button>
         <h1 className="text-2xl font-bold text-white mb-2">{selectedAssessment.title}</h1>
         <p className="text-slate-400 text-sm mb-6">
-          {selectedAssessment.questions.length} questions · {selectedAssessment.estimated_minutes} min · Pass: {selectedAssessment.passing_score}%
+          {Math.min(selectedAssessment.questions.length, 15)} questions from a {selectedAssessment.questions.length}-question bank · {selectedAssessment.estimated_minutes} min · Pass: {selectedAssessment.passing_score}%
         </p>
         <AssessmentTaker assessment={selectedAssessment} onDone={(result) => setDone((d) => ({ ...d, [selectedId]: result }))} />
       </div>
@@ -170,6 +194,11 @@ export default function AssessmentPage() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
+          {(!assessments || assessments.length === 0) && (
+            <div className="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+              Assessments will appear here once the backend seed data has loaded. Restart the API if this stays empty.
+            </div>
+          )}
           {(assessments || []).map((assessment: any, i: number) => {
             const result = done[assessment.id];
             return (

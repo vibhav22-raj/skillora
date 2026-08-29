@@ -295,13 +295,19 @@ class DemoProvider(BaseAIProvider):
         skill_gaps = context.get("skill_gaps", [])
         weekly_hours = profile.get("weekly_hours", 10)
         daily_hours = weekly_hours / 5
+        roadmap = context.get("roadmap") or {}
+        milestone = context.get("current_milestone") or {}
+        milestone_title = milestone.get("title") if isinstance(milestone, dict) else None
         
         top_gap = skill_gaps[0]["skill_name"] if skill_gaps else "core skills"
+        phase = roadmap.get("current_phase") or "your current roadmap phase"
         
         return (
             f"🎯 **Today's Learning Plan** ({daily_hours:.1f} hours)\n\n"
-            f"**Priority: {top_gap}** (your highest-impact gap)\n\n"
-            f"Here's your focused plan for today:\n\n"
+            f"**Priority: {top_gap}** (your highest-impact gap)\n"
+            f"**Roadmap phase:** {phase}"
+            + (f"\n**Milestone:** {milestone_title}" if milestone_title else "")
+            + "\n\nHere's your focused plan for today:\n\n"
             f"1. 📺 **30 min** — Watch the next lesson in your {top_gap} module\n"
             f"2. ✏️ **15 min** — Complete the practice exercises\n"
             f"3. 🔨 **20 min** — Apply to your current project\n\n"
@@ -413,10 +419,15 @@ class DemoProvider(BaseAIProvider):
     def _roadmap_response(self, context: Dict) -> str:
         profile = context.get("profile", {})
         target_role = profile.get("target_role", "your goal")
+        roadmap = context.get("roadmap") or {}
+        title = roadmap.get("title") or f"{target_role} roadmap"
+        weeks = roadmap.get("total_weeks") or "several"
+        phase = roadmap.get("current_phase") or "the first incomplete phase"
         
         return (
             f"🗺️ **Your Learning Roadmap**\n\n"
-            f"Your personalized roadmap to **{target_role}** is built on 3 principles:\n\n"
+            f"You currently have **{title}** ({weeks} weeks). Next focus: **{phase}**.\n\n"
+            f"Your personalized path to **{target_role}** is built on 3 principles:\n\n"
             f"**1. Prerequisites First** 🔗\n"
             f"Every topic is ordered so you always have the foundation needed for the next step.\n\n"
             f"**2. Skill Gap Priority** 🎯\n"
@@ -445,9 +456,16 @@ class DemoProvider(BaseAIProvider):
         
         tasks_str = "\n".join(f"  {i+1}. {t}" for i, t in enumerate(tasks))
         
+        skill_gaps = context.get("skill_gaps") or []
+        top_gap = skill_gaps[0]["skill_name"] if skill_gaps else "your next roadmap skill"
+        roadmap = context.get("roadmap") or {}
+        phase = roadmap.get("current_phase")
+        
         return (
             f"⏰ **{time_str} Learning Sprint**\n\n"
-            f"Here's a focused plan for your available time:\n\n"
+            f"Focus this session on **{top_gap}**"
+            + (f" in **{phase}**." if phase else ".")
+            + "\n\nHere's a focused plan for your available time:\n\n"
             f"{tasks_str}\n\n"
             f"💡 *Short sessions can be just as effective — consistency beats duration.*\n\n"
             f"Even 30 minutes a day adds up to 15 hours a month. That's significant progress!\n\n"

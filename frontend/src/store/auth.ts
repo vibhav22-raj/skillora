@@ -15,6 +15,7 @@ interface AuthState {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   setProfile: (profile: LearnerProfile) => void;
+  setUser: (user: User) => void;
   demoLogin: () => Promise<void>;
 }
 
@@ -59,6 +60,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setProfile: (profile) => set({ profile }),
+
+      setUser: (user) => set({ user }),
 
       demoLogin: async () => {
         set({ isLoading: true });

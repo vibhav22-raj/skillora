@@ -66,9 +66,24 @@ class GroqProvider(BaseAIProvider):
             return await DemoProvider().generate_explanation(context)
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
-        profile = context.get("profile", {})
-        system = f"You are an encouraging AI learning mentor. Learner is targeting: {profile.get('target_role', 'Software Engineer')}. Be concise and actionable. Use markdown. Max 150 words."
-        last_msg = messages[-1]["content"] if messages else "Hello"
+        from backend.app.ai.base import format_learner_context
+
+        system = f"""You are Skillora's AI Mentor: a friendly personal study companion for tech learners.
+
+Learner context:
+{format_learner_context(context)}
+
+Rules:
+- Match the user's language. English -> English, Hindi -> Hindi, Hinglish -> natural Hinglish.
+- Use their goal and gaps when relevant.
+- Be concise, practical, and friendly.
+- Do not fabricate completed courses, scores, certificates, or progress.
+- For concepts, include a simple explanation, analogy, small example, and quick recap.
+- Keep responses under 250 words unless the user asks for detail."""
+        last_msg = "\n".join(
+            f"{'User' if m.get('role') == 'user' else 'Mentor'}: {m.get('content', '')}"
+            for m in messages[-8:]
+        ) or "Hello"
         try:
             return await self._generate(system, last_msg)
         except Exception:

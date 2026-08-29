@@ -325,7 +325,7 @@ export default function OnboardingPage() {
                         <p className="text-amber-300 text-sm font-medium mb-2">⚡ Quick Demo Access</p>
                         <button onClick={() => setForm((f) => ({ ...f, guestEmail: 'demo@learnpath.ai', guestPassword: 'Demo@12345', guestName: 'Alex Chen' }))}
                           className="text-amber-400 hover:text-amber-300 text-sm underline">
-                          Use demo account (demo@learnpath.ai / Demo@12345)
+                          Use demo account — explore with pre-loaded data
                         </button>
                       </div>
 

@@ -223,6 +223,73 @@ PROJECTS_DATA = [
 ]
 
 # ─── Assessment Data ───────────────────────────────────────────────────────
+INDUSTRY_PROJECTS_EXTRA = [
+    {"title": "Demand Forecasting Pipeline", "description": "Forecast product demand from historical sales, promotions, and seasonality. Include model comparison and forecast explainability.", "skills": ["Machine Learning", "Python", "Statistics"], "difficulty": 4, "duration_hours": 18, "category": "Machine Learning", "tags": ["forecasting", "time-series", "business"]},
+    {"title": "Resume Skill Analyzer", "description": "Extract skills from resumes, compare them with a target role, and generate a prioritized learning gap report.", "skills": ["NLP", "Python", "Generative AI"], "difficulty": 4, "duration_hours": 18, "category": "Generative AI", "tags": ["resume", "nlp", "career"]},
+    {"title": "Document Classification Service", "description": "Classify PDFs or text documents into business categories with preprocessing, model serving, and confidence scores.", "skills": ["NLP", "Machine Learning", "REST APIs"], "difficulty": 4, "duration_hours": 20, "category": "NLP", "tags": ["classification", "documents", "api"]},
+    {"title": "Document Q&A Assistant", "description": "Build a question-answering assistant over uploaded documents using embeddings, retrieval, and a lightweight web UI.", "skills": ["Generative AI", "NLP", "Python"], "difficulty": 4, "duration_hours": 22, "category": "Generative AI", "tags": ["rag", "embeddings", "qa"]},
+    {"title": "Meeting Summarizer", "description": "Summarize transcripts into decisions, blockers, owners, and follow-up tasks with exportable notes.", "skills": ["Generative AI", "NLP", "Python"], "difficulty": 3, "duration_hours": 14, "category": "Generative AI", "tags": ["summarization", "productivity", "nlp"]},
+    {"title": "Code Explanation Assistant", "description": "Paste code and receive plain-language explanations, complexity notes, and suggested test cases.", "skills": ["Generative AI", "Python", "REST APIs"], "difficulty": 4, "duration_hours": 18, "category": "Generative AI", "tags": ["code", "assistant", "developer-tools"]},
+    {"title": "Customer Segmentation Analysis", "description": "Segment customers using clustering, profile each group, and recommend targeted business actions.", "skills": ["Machine Learning", "Statistics", "Data Visualization"], "difficulty": 3, "duration_hours": 14, "category": "Data Science", "tags": ["clustering", "analytics", "marketing"]},
+    {"title": "Business KPI Analytics Dashboard", "description": "Create an executive dashboard with revenue, retention, funnel, and cohort metrics from raw event data.", "skills": ["SQL", "Data Visualization", "Python"], "difficulty": 3, "duration_hours": 16, "category": "Data Analysis", "tags": ["bi", "dashboard", "kpi"]},
+    {"title": "Authentication System", "description": "Implement registration, login, refresh tokens, roles, password reset, and audit logging.", "skills": ["REST APIs", "Security", "SQL"], "difficulty": 3, "duration_hours": 16, "category": "Backend", "tags": ["auth", "jwt", "security"]},
+    {"title": "E-commerce Backend API", "description": "Build catalog, cart, orders, payments mock, inventory, and admin APIs with tests and pagination.", "skills": ["REST APIs", "SQL", "Python"], "difficulty": 4, "duration_hours": 24, "category": "Backend", "tags": ["ecommerce", "api", "testing"]},
+    {"title": "Real-time Notification System", "description": "Design a notification service with queues, WebSockets, preferences, retries, and delivery status.", "skills": ["System Design", "Node.js", "REST APIs"], "difficulty": 4, "duration_hours": 22, "category": "System Design", "tags": ["realtime", "queues", "websocket"]},
+    {"title": "REST API Platform", "description": "Build a reusable API platform with auth, rate limits, versioning, documentation, and monitoring hooks.", "skills": ["REST APIs", "System Design", "Testing"], "difficulty": 4, "duration_hours": 20, "category": "Backend", "tags": ["platform", "api", "observability"]},
+    {"title": "OCR Document Processor", "description": "Extract text from scanned documents, clean fields, validate confidence, and store searchable records.", "skills": ["Computer Vision", "Python", "REST APIs"], "difficulty": 4, "duration_hours": 20, "category": "Computer Vision", "tags": ["ocr", "documents", "extraction"]},
+    {"title": "Manufacturing Defect Detection", "description": "Classify product images as defective or healthy and explain model confidence for quality review.", "skills": ["Computer Vision", "Deep Learning", "Python"], "difficulty": 5, "duration_hours": 26, "category": "Computer Vision", "tags": ["defect-detection", "cnn", "quality"]},
+    {"title": "Log Anomaly Detection", "description": "Detect unusual system behavior from application logs and raise severity-ranked alerts.", "skills": ["Machine Learning", "Security", "Python"], "difficulty": 4, "duration_hours": 20, "category": "Cybersecurity", "tags": ["logs", "anomaly", "security"]},
+    {"title": "Phishing Detection Classifier", "description": "Classify suspicious URLs or emails using feature engineering, explainability, and safe evaluation metrics.", "skills": ["Machine Learning", "Security", "NLP"], "difficulty": 4, "duration_hours": 18, "category": "Cybersecurity", "tags": ["phishing", "classification", "security"]},
+    {"title": "CI/CD Health Dashboard", "description": "Track build status, deployment frequency, failure rate, and recovery time from CI pipeline data.", "skills": ["CI/CD", "Data Visualization", "React"], "difficulty": 3, "duration_hours": 16, "category": "DevOps", "tags": ["cicd", "dashboard", "metrics"]},
+    {"title": "Monitoring Dashboard", "description": "Build a service monitoring dashboard with uptime, latency, error rate, alerts, and incident notes.", "skills": ["Monitoring", "React", "REST APIs"], "difficulty": 4, "duration_hours": 20, "category": "DevOps", "tags": ["observability", "alerts", "sre"]},
+    {"title": "Feature Store Mini Platform", "description": "Create a lightweight feature registry with offline storage, validation, and model training examples.", "skills": ["MLOps", "Python", "SQL"], "difficulty": 5, "duration_hours": 28, "category": "MLOps", "tags": ["feature-store", "mlops", "data"]},
+    {"title": "A/B Test Analyzer", "description": "Analyze experiment results, calculate confidence intervals, detect sample ratio mismatch, and report decisions.", "skills": ["Statistics", "SQL", "Data Visualization"], "difficulty": 3, "duration_hours": 14, "category": "Data Science", "tags": ["experimentation", "statistics", "analytics"]},
+]
+
+
+def _technologies_for_project(project: dict) -> list:
+    skills = set(project.get("skills", []))
+    category = project.get("category", "")
+    technologies = ["Git", "GitHub", "Documentation"]
+    if "Python" in skills or category in {"Machine Learning", "Data Science", "Data Analysis", "NLP", "Computer Vision", "MLOps"}:
+        technologies.extend(["Python", "Pandas", "scikit-learn"])
+    if "Deep Learning" in skills or "Computer Vision" in skills:
+        technologies.extend(["PyTorch", "OpenCV"])
+    if "Generative AI" in skills:
+        technologies.extend(["Embeddings", "Vector Search", "FastAPI"])
+    if "React" in skills or "JavaScript" in skills or category in {"Frontend", "Full Stack"}:
+        technologies.extend(["React", "TypeScript", "Tailwind CSS"])
+    if "REST APIs" in skills or category in {"Backend", "System Design"}:
+        technologies.extend(["FastAPI", "SQLAlchemy", "SQLite"])
+    if "Docker" in skills or "CI/CD" in skills or category in {"DevOps", "MLOps"}:
+        technologies.extend(["Docker", "GitHub Actions"])
+    if "SQL" in skills:
+        technologies.extend(["SQL", "SQLite"])
+    if "Security" in skills:
+        technologies.extend(["OWASP Basics", "Secure Validation"])
+    return list(dict.fromkeys(technologies))
+
+
+def _project_metadata(project: dict) -> dict:
+    domain = project.get("domain") or project.get("category") or "Software Engineering"
+    technologies = project.get("technologies") or _technologies_for_project(project)
+    skills = ", ".join(project.get("skills", [])[:4]) or "core engineering skills"
+    title = project["title"]
+    return {
+        **project,
+        "domain": domain,
+        "problem_statement": project.get("problem_statement") or f"Build {title} to solve a practical {domain.lower()} problem with production-style constraints.",
+        "business_value": project.get("business_value") or f"Demonstrates how {skills} can create measurable operational, product, or decision-making value.",
+        "resume_value": project.get("resume_value") or ("High" if project.get("difficulty", 1) >= 4 else "Medium"),
+        "technologies": technologies,
+        "architecture": project.get("architecture") or "Frontend or notebook workflow, backend/service layer where relevant, persistent storage, evaluation/reporting, and deployment-ready documentation.",
+        "resume_bullet": project.get("resume_bullet") or f"Built {title} using {', '.join(technologies[:4])} to demonstrate {skills}.",
+    }
+
+
+ALL_PROJECTS_DATA = [_project_metadata(p) for p in PROJECTS_DATA + INDUSTRY_PROJECTS_EXTRA]
+
+
 ASSESSMENTS_DATA = [
     {
         "skill_name": "Python",
@@ -432,32 +499,42 @@ async def _seed_projects(db: AsyncSession):
     from backend.app.models import Project
     from sqlalchemy import select
 
-    result = await db.execute(select(Project).limit(1))
-    if result.scalar_one_or_none():
-        return
+    added = 0
+    updated = 0
+    for p in ALL_PROJECTS_DATA:
+        result = await db.execute(select(Project).where(Project.title == p["title"]))
+        project = result.scalar_one_or_none()
 
-    for p in PROJECTS_DATA:
-        project = Project(
-            id=gen_id(),
-            title=p["title"],
-            description=p.get("description", ""),
-            skills=p["skills"],
-            difficulty=p["difficulty"],
-            duration_hours=p["duration_hours"],
-            category=p["category"],
-            tags=p.get("tags", []),
-            domain=p.get("domain"),
-            problem_statement=p.get("problem_statement"),
-            business_value=p.get("business_value"),
-            resume_value=p.get("resume_value"),
-            technologies=p.get("technologies", []),
-            architecture=p.get("architecture"),
-            resume_bullet=p.get("resume_bullet"),
-        )
+        if not project:
+            project = Project(
+                id=gen_id(),
+                title=p["title"],
+                description=p.get("description", ""),
+                skills=p["skills"],
+                difficulty=p["difficulty"],
+                duration_hours=p["duration_hours"],
+                category=p["category"],
+                tags=p.get("tags", []),
+            )
+            db.add(project)
+            added += 1
 
-        db.add(project)
+        for field in (
+            "domain",
+            "problem_statement",
+            "business_value",
+            "resume_value",
+            "technologies",
+            "architecture",
+            "resume_bullet",
+        ):
+            value = p.get(field)
+            if value and not getattr(project, field):
+                setattr(project, field, value)
+                updated += 1
+
     await db.flush()
-    print(f"[Seed] Added {len(PROJECTS_DATA)} projects")
+    print(f"[Seed] Processed {len(ALL_PROJECTS_DATA)} projects ({added} added, {updated} metadata fields updated)")
 
 
 async def _seed_assessments(db: AsyncSession):

@@ -6,7 +6,9 @@ import uuid
 from datetime import datetime
 
 from backend.app.database.base import get_db
-from backend.app.models import User, ChatSession, ChatMessage, LearnerProfile, UserSkill, Roadmap
+from backend.app.models import (
+    User, ChatSession, ChatMessage, LearnerProfile, UserSkill, Roadmap, AssessmentAttempt,
+)
 from backend.app.schemas import ApiResponse, ChatMessageRequest, ChatSessionCreate
 from backend.app.services.auth_service import get_current_user
 from backend.app.recommender.skill_gap import calculate_gaps
@@ -34,6 +36,7 @@ async def _build_context(user: User, db: AsyncSession) -> dict:
             "experience_level": profile.experience_level,
             "weekly_hours": profile.weekly_hours,
             "learning_style": profile.learning_style,
+            "career_goal": profile.career_goal,
         }
 
     current_skills = {us.skill_name: us.current_level for us in user_skills}
@@ -41,7 +44,54 @@ async def _build_context(user: User, db: AsyncSession) -> dict:
     if profile_dict.get("target_role"):
         skill_gaps = calculate_gaps(profile_dict["target_role"], current_skills)
 
-    return {"profile": profile_dict, "skill_gaps": skill_gaps}
+    roadmap_result = await db.execute(
+        select(Roadmap).where(Roadmap.user_id == user.id, Roadmap.is_active == True)
+    )
+    roadmap = roadmap_result.scalar_one_or_none()
+    current_milestone = None
+    current_phase = None
+    if roadmap:
+        phases = roadmap.phases or []
+        current_phase = next((p for p in phases if p.get("status") == "in_progress"), None)
+        if not current_phase:
+            current_phase = next((p for p in phases if p.get("status") != "completed"), phases[0] if phases else None)
+        milestones = roadmap.milestones or []
+        current_milestone = milestones[0] if milestones else None
+        if current_phase and current_phase.get("milestones"):
+            current_milestone = {
+                "title": current_phase.get("title"),
+                "description": current_phase.get("description"),
+                "skills": current_phase.get("skills", [])[:4],
+            }
+
+    attempt_result = await db.execute(
+        select(AssessmentAttempt)
+        .where(AssessmentAttempt.user_id == user.id)
+        .order_by(AssessmentAttempt.completed_at.desc())
+        .limit(1)
+    )
+    latest_attempt = attempt_result.scalar_one_or_none()
+    latest_assessment = None
+    if latest_attempt:
+        latest_assessment = {
+            "score": latest_attempt.score,
+            "passed": latest_attempt.passed,
+            "skill_estimate": latest_attempt.skill_estimate,
+            "completed_at": latest_attempt.completed_at.isoformat() if latest_attempt.completed_at else None,
+        }
+
+    return {
+        "profile": profile_dict,
+        "skill_gaps": skill_gaps,
+        "current_skills": current_skills,
+        "roadmap": {
+            "title": roadmap.title if roadmap else None,
+            "total_weeks": roadmap.total_weeks if roadmap else None,
+            "current_phase": current_phase.get("title") if current_phase else None,
+        } if roadmap else None,
+        "current_milestone": current_milestone,
+        "latest_assessment": latest_assessment,
+    }
 
 
 @router.post("/message", response_model=ApiResponse)

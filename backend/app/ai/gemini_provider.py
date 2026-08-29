@@ -94,17 +94,12 @@ Explain why this resource specifically helps close their skill gaps and advances
             return await DemoProvider().generate_explanation(context)
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
-        profile = context.get("profile", {})
-        skill_gaps = context.get("skill_gaps", [])
-        top_gaps_str = ', '.join(g['skill_name'] for g in skill_gaps[:3]) if skill_gaps else 'various skills'
+        from backend.app.ai.base import format_learner_context
 
         system_context = f"""You are LearnPath AI Mentor — a friendly, knowledgeable personal study companion for tech learners.
 
 LEARNER PROFILE:
-- Target role: {profile.get('target_role', 'Software Engineer')}
-- Experience: {profile.get('experience_level', 'intermediate')}
-- Weekly hours available: {profile.get('weekly_hours', 10)}h
-- Top skill gaps: {top_gaps_str}
+{format_learner_context(context)}
 
 PERSONALITY:
 - Be warm and encouraging like a helpful senior colleague or study buddy

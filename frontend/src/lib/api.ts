@@ -56,8 +56,12 @@ export const authAPI = {
 export const profileAPI = {
   get: () => api.get<ApiResponse<LearnerProfile>>('/api/profile/'),
 
-  update: (data: Partial<LearnerProfile>) =>
+  update: (data: Partial<LearnerProfile> & { name?: string; email?: string }) =>
     api.put<ApiResponse<LearnerProfile>>('/api/profile/', data),
+
+  activity: () => api.get<ApiResponse<any>>('/api/profile/activity'),
+
+  completedCourses: () => api.get<ApiResponse<any[]>>('/api/profile/completed-courses'),
 
   onboarding: (data: {
     goal: string;
