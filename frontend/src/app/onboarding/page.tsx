@@ -99,7 +99,7 @@ export default function OnboardingPage() {
     try {
       // Authenticate first if not already
       if (!isAuthenticated) {
-        if (form.guestEmail === 'demo@learnpath.ai') {
+        if (form.guestEmail === 'demo@skillora.io') {
           await demoLogin();
         } else {
           const { authAPI } = await import('@/lib/api');
@@ -323,9 +323,9 @@ export default function OnboardingPage() {
                       {/* Demo option */}
                       <div className="bg-amber-950/50 border border-amber-700/50 rounded-xl p-4">
                         <p className="text-amber-300 text-sm font-medium mb-2">⚡ Quick Demo Access</p>
-                        <button onClick={() => setForm((f) => ({ ...f, guestEmail: 'demo@learnpath.ai', guestPassword: 'Demo@12345', guestName: 'Alex Chen' }))}
+                        <button onClick={() => setForm((f) => ({ ...f, guestEmail: 'demo@skillora.io', guestPassword: 'DemoPass123', guestName: 'Alex Chen' }))}
                           className="text-amber-400 hover:text-amber-300 text-sm underline">
-                          Use demo account (demo@learnpath.ai / Demo@12345)
+                                                  Use demo account (demo@skillora.io / DemoPass123)
                         </button>
                       </div>
 

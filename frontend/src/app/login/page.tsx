@@ -76,7 +76,7 @@ export default function LoginPage() {
           <button onClick={handleDemo} disabled={isLoading}
             className="w-full mb-4 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/50 text-amber-300 font-medium py-3 px-4 rounded-xl transition-all text-sm flex items-center justify-center gap-2">
             <span>⚡</span>
-            Try Demo Account (demo@learnpath.ai)
+            Try Demo Account (demo@skillora.io)
           </button>
 
           <div className="flex items-center gap-3 mb-4">
@@ -133,7 +133,7 @@ export default function LoginPage() {
         </motion.div>
 
         <p className="text-center text-slate-600 text-xs mt-4">
-          Demo credentials: demo@learnpath.ai / Demo@12345
+          Demo credentials: demo@skillora.io / DemoPass123
         </p>
       </div>
     </div>
