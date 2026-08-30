@@ -4,8 +4,11 @@ Works completely offline. Used for hackathon demos and when no API key is config
 Returns realistic, contextual responses based on user profile.
 """
 import json
-from typing import Dict, List, Any
-from app.ai.base import BaseAIProvider
+from typing import Dict, List, Any, Optional
+try:
+    from backend.app.ai.base import BaseAIProvider
+except ImportError:
+    from app.ai.base import BaseAIProvider
 
 
 class DemoProvider(BaseAIProvider):

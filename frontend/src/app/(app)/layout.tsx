@@ -63,7 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5 border-b border-slate-800">
         <Brain className="h-7 w-7 text-indigo-500 flex-shrink-0" />
-        <span className="font-bold text-lg text-white">LearnPath <span className="text-indigo-400">AI</span></span>
+        <span className="font-bold text-lg text-white">Skillora <span className="text-indigo-400">AI</span></span>
       </div>
 
       {/* Nav */}
@@ -130,7 +130,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Mobile topbar */}
         <div className="flex md:hidden items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
           <button onClick={() => setSidebarOpen(true)}><Menu className="h-6 w-6" /></button>
-          <span className="font-bold text-white">LearnPath AI</span>
+          <span className="font-bold text-white">Skillora</span>
           <Link href="/profile">
             <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">
               {initials}

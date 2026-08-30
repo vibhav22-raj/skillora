@@ -3,7 +3,7 @@
 
 Write-Host "
 ╔════════════════════════════════════════════════════════════╗
-║     LearnPath AI — Starting Development Servers            ║
+║       Skillora — Starting Development Servers              ║
 ╚════════════════════════════════════════════════════════════╝
 " -ForegroundColor Cyan
 

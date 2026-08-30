@@ -4,7 +4,7 @@ REM Skillora — Start Both Servers (Batch version)
 cls
 echo.
 echo ╔════════════════════════════════════════════════════════════╗
-echo ║     LearnPath AI — Starting Development Servers            ║
+echo ║       Skillora — Starting Development Servers              ║
 echo ╚════════════════════════════════════════════════════════════╝
 echo.
 

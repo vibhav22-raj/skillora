@@ -14,9 +14,8 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  setUser: (user: Partial<User> & Pick<User, 'id'>) => void;
+  setUser: (user: User | (Partial<User> & Pick<User, 'id'>)) => void;
   setProfile: (profile: LearnerProfile) => void;
-  setUser: (user: User) => void;
   demoLogin: () => Promise<void>;
 }
 
@@ -60,19 +59,25 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, profile: null, token: null, isAuthenticated: false });
       },
 
-      setUser: (user) => set((state) => ({ user: state.user ? { ...state.user, ...user } : user as User })),
+      setUser: (user) => set((state) => ({ user: state.user ? { ...state.user, ...user } as User : user as User })),
 
       setProfile: (profile) => set({ profile }),
-
-      setUser: (user) => set({ user }),
 
       demoLogin: async () => {
         set({ isLoading: true });
         try {
-          const { data } = await authAPI.login('demo@skillora.io', 'DemoPass123');
-          const { user, access_token } = data.data;
-          localStorage.setItem('learnpath_token', access_token);
-          set({ user, token: access_token, isAuthenticated: true, isLoading: false });
+          try {
+            const { data } = await authAPI.login('demo@learnpath.ai', 'Demo@12345');
+            const { user, access_token } = data.data;
+            localStorage.setItem('learnpath_token', access_token);
+            set({ user, token: access_token, isAuthenticated: true, isLoading: false });
+            return;
+          } catch {
+            const { data } = await authAPI.login('demo@skillora.io', 'DemoPass123');
+            const { user, access_token } = data.data;
+            localStorage.setItem('learnpath_token', access_token);
+            set({ user, token: access_token, isAuthenticated: true, isLoading: false });
+          }
         } catch (e) {
           set({ isLoading: false });
           throw e;

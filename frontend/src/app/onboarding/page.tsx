@@ -145,7 +145,7 @@ export default function OnboardingPage() {
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <Link href="/" className="flex items-center gap-2">
           <Brain className="h-6 w-6 text-indigo-500" />
-          <span className="font-bold text-lg">LearnPath AI</span>
+          <span className="font-bold text-lg">Skillora <span className="text-indigo-400">AI</span></span>
         </Link>
         <span className="text-slate-400 text-sm">Step {step} of {totalSteps}</span>
       </div>
@@ -322,8 +322,11 @@ export default function OnboardingPage() {
                     <div className="space-y-4">
                       {/* Demo option */}
                       <div className="bg-amber-950/50 border border-amber-700/50 rounded-xl p-4">
-                        <p className="text-amber-300 text-sm font-medium mb-2">⚡ Quick Demo Access</p>
-                        <button onClick={() => setForm((f) => ({ ...f, guestEmail: 'demo@skillora.io', guestPassword: 'DemoPass123', guestName: 'Alex Chen' }))}
+                        <button
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, guestEmail: 'demo@learnpath.ai', guestPassword: 'Demo@12345', guestName: 'Alex Chen' }))}
+                          className="text-amber-400 hover:text-amber-300 text-sm underline text-left"
+                        >
                           Use demo account — explore with pre-loaded data
                         </button>
                       </div>

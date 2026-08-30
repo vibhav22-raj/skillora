@@ -21,107 +21,93 @@ const FloatingSkillBadge = ({ skill, delay, x, y }: { skill: string; delay: numb
 
 const HeroIllustration = () => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.8, delay: 0.1 }}
-    className="relative w-full h-full flex items-center justify-center px-8">
-    {/* Central circle gradient */}
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <motion.div
-        className="w-64 h-64 bg-linear-to-br from-indigo-500/20 to-violet-500/20 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      />
+    initial={{ opacity: 0, scale: 0.96 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.7 }}
+    className="relative w-full max-w-md p-6 rounded-3xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-xl shadow-2xl space-y-4"
+  >
+    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-xs">
+          AI
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-white">Target Career Pathway</h3>
+          <p className="text-[11px] text-slate-400">Personalized • Adaptive • Deterministic</p>
+        </div>
+      </div>
+      <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+        Active Path
+      </span>
     </div>
 
-    {/* SVG Illustration - Learning journey visual */}
-    <svg className="w-full max-w-sm relative z-10" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Brain/AI icon */}
-      <motion.g
-        animate={{ y: [-5, 5, -5] }}
-        transition={{ duration: 3, repeat: Infinity }}
+    <div className="space-y-3 relative">
+      {/* Step 1 */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.15 }}
+        className="flex items-center justify-between p-3 rounded-xl bg-slate-800/60 border border-slate-700/40"
       >
-        <circle cx="200" cy="120" r="35" fill="none" stroke="url(#brainGradient)" strokeWidth="2" />
-        <path d="M 180 120 Q 180 105 200 105 Q 220 105 220 120" fill="none" stroke="url(#brainGradient)" strokeWidth="2" />
-        <circle cx="190" cy="115" r="4" fill="url(#brainGradient)" />
-        <circle cx="210" cy="115" r="4" fill="url(#brainGradient)" />
-      </motion.g>
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+            ✓
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold text-white">Diagnostic & Skill Gaps</h4>
+            <p className="text-[11px] text-slate-400">Target role analysis complete</p>
+          </div>
+        </div>
+        <span className="text-[10px] text-emerald-400 font-medium">100%</span>
+      </motion.div>
 
-      {/* Learning path nodes */}
-      <motion.g
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity, delay: 0.1 }}
+      {/* Step 2 */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3 }}
+        className="flex items-center justify-between p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/40 shadow-lg shadow-indigo-500/5"
       >
-        {/* Python */}
-        <circle cx="100" cy="200" r="20" fill="none" stroke="#60a5fa" strokeWidth="2" />
-        <text x="100" y="206" textAnchor="middle" fontSize="12" fill="#bfdbfe" fontWeight="bold">Py</text>
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs animate-pulse">
+            2
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold text-white">Personalized Roadmap</h4>
+            <p className="text-[11px] text-indigo-300">Phase 2: Core Engineering</p>
+          </div>
+        </div>
+        <span className="text-[10px] text-indigo-300 font-semibold bg-indigo-500/20 px-2 py-0.5 rounded-full">
+          In Progress
+        </span>
+      </motion.div>
 
-        {/* Arrow 1 */}
-        <line x1="115" y1="200" x2="165" y2="200" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="5,5" />
-        <polygon points="170,200 165,197 165,203" fill="#6366f1" />
-      </motion.g>
-
-      {/* ML */}
-      <motion.g
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
+      {/* Step 3 */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.45 }}
+        className="flex items-center justify-between p-3 rounded-xl bg-slate-850/40 border border-slate-800/60 opacity-80"
       >
-        <circle cx="200" cy="200" r="20" fill="none" stroke="#a78bfa" strokeWidth="2" />
-        <text x="200" y="206" textAnchor="middle" fontSize="12" fill="#ddd6fe" fontWeight="bold">ML</text>
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-xs">
+            3
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold text-slate-300">Industry Project & Portfolio</h4>
+            <p className="text-[11px] text-slate-500">Real-world problem statement</p>
+          </div>
+        </div>
+        <span className="text-[10px] text-slate-500 font-medium">Upcoming</span>
+      </motion.div>
+    </div>
 
-        {/* Arrow 2 */}
-        <line x1="215" y1="200" x2="265" y2="200" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="5,5" />
-        <polygon points="270,200 265,197 265,203" fill="#6366f1" />
-      </motion.g>
-
-      {/* AI */}
-      <motion.g
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-      >
-        <circle cx="300" cy="200" r="20" fill="none" stroke="#ec4899" strokeWidth="2" />
-        <text x="300" y="206" textAnchor="middle" fontSize="12" fill="#fbcfe8" fontWeight="bold">AI</text>
-      </motion.g>
-
-      {/* Upward growth path */}
-      <motion.path
-        d="M 140 280 Q 200 220 260 160"
-        fill="none"
-        stroke="url(#pathGradient)"
-        strokeWidth="2"
-        strokeDasharray="300"
-        initial={{ strokeDashoffset: 300 }}
-        animate={{ strokeDashoffset: 0 }}
-        transition={{ duration: 3, delay: 0.5, repeat: Infinity }}
-      />
-
-      {/* Career target */}
-      <motion.g
-        animate={{ scale: [1, 1.1, 1], rotate: [0, 3, 0] }}
-        transition={{ duration: 2.5, repeat: Infinity }}
-      >
-        <circle cx="280" cy="140" r="15" fill="none" stroke="#10b981" strokeWidth="2" />
-        <path d="M 275 140 L 280 145 L 285 135" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </motion.g>
-
-      {/* Gradient definitions */}
-      <defs>
-        <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#a78bfa" />
-        </linearGradient>
-        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#10b981" />
-        </linearGradient>
-      </defs>
-    </svg>
-
-    {/* Floating skill badges */}
-    <FloatingSkillBadge skill="Python" delay={0.2} x={15} y={30} />
-    <FloatingSkillBadge skill="DSA" delay={0.35} x={75} y={20} />
-    <FloatingSkillBadge skill="SQL" delay={0.5} x={70} y={65} />
-    <FloatingSkillBadge skill="Cloud" delay={0.65} x={15} y={75} />
+    <div className="p-3 rounded-xl bg-indigo-900/30 border border-indigo-700/30 flex items-center justify-between text-xs">
+      <span className="text-slate-300 flex items-center gap-1.5 font-medium">
+        <span>⚡</span> Next Best Action ready
+      </span>
+      <span className="text-indigo-400 font-semibold text-[11px]">~25 min</span>
+    </div>
   </motion.div>
 );
 

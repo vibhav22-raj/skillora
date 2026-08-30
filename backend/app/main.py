@@ -52,7 +52,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app
 app = FastAPI(
-    title="LearnPath AI",
+    title="Skillora",
     description="AI-Powered Personalized Learning Path Recommender",
     version="1.0.0",
     lifespan=lifespan,
@@ -113,7 +113,7 @@ app.include_router(dashboard.router)
 async def health_check():
     return {
         "status": "healthy",
-        "service": "LearnPath AI",
+        "service": "Skillora",
         "version": "1.0.0",
         "ai_provider": settings.AI_PROVIDER,
         "demo_mode": settings.DEMO_MODE,
@@ -123,7 +123,7 @@ async def health_check():
 @app.get("/")
 async def root():
     return {
-        "message": "Welcome to LearnPath AI API",
+        "message": "Welcome to Skillora API",
         "docs": "/docs",
         "health": "/health",
     }

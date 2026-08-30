@@ -185,6 +185,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Two columns: NBA + Today's Focus */}
+      <div className="grid lg:grid-cols-2 gap-6">
         {/* Next Best Action - Premium card */}
         <motion.div id="walk-next-best-action" initial={{ opacity: 0, x: -20, scale: 0.96 }} animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ delay: 0.3 }}

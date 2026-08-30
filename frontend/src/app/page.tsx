@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Brain, Zap, Target, TrendingUp, MessageCircle, ChevronRight, BookOpen, Map } from 'lucide-react';
+import { Brain, Zap, Target, TrendingUp, MessageCircle, ChevronRight, BookOpen, Map, CheckCircle, Sparkles } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -53,7 +53,7 @@ export default function HomePage() {
             <span className="flex h-8 w-8 items-center justify-center rounded-full border border-violet-400/50 bg-violet-500/10 text-violet-300">
               <Brain className="h-4 w-4" />
             </span>
-            <span className="text-xl font-bold">LearnPath <span className="text-violet-400">AI</span></span>
+            <span className="text-xl font-bold">Skillora <span className="text-violet-400">AI</span></span>
           </Link>
 
           <div className="flex items-center gap-3">
@@ -85,7 +85,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-300 lg:mx-0">
-                  Stop guessing what to learn next. LearnPath AI analyzes your skill profile, highlights critical gaps,
+                  Stop guessing what to learn next. Skillora analyzes your skill profile, highlights critical gaps,
                   and builds a realistic roadmap tailored to your target role, schedule, and pace.
                 </p>
 
@@ -98,61 +98,59 @@ export default function HomePage() {
                     {isLoading ? 'Loading...' : 'Try Demo Account'}
                   </button>
                 </div>
-
-                <div className="mt-8 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
-                  {statsState.map((stat) => (
-                    <div key={stat.label} className="rounded-xl border border-white/8 bg-slate-900/40 p-3 text-center backdrop-blur-sm">
-                      <div className="text-xl font-bold text-violet-300">{stat.value}</div>
-                      <div className="mt-1 text-[11px] text-slate-400">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
               </div>
 
-              <div className="relative flex items-center justify-center">
+              <div className="relative">
                 <HeroVisual />
-                <div className="absolute -bottom-3 right-6 rounded-full border border-violet-400/30 bg-white/5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-100 backdrop-blur-md">
-                  AI Roadmap Generation
-                </div>
               </div>
             </div>
           </motion.div>
         </section>
 
-        <section className="border-y border-white/10 bg-slate-950/30 py-8">
-          <div className="mx-auto max-w-7xl px-4">
-            <p className="mb-3 text-sm uppercase tracking-[0.2em] text-slate-400">Popular career paths</p>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {roles.map((role, i) => (
-                <div key={role} className="shrink-0">
-                  <RoleCard role={role} href={`/onboarding?goal=${encodeURIComponent(role)}`} variant={i % 3} />
-                </div>
-              ))}
-            </div>
+        <section className="border-y border-white/8 bg-slate-950/60 py-10">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 px-4 text-center sm:grid-cols-4">
+            {[
+              { label: 'Role Roadmaps', value: '4' },
+              { label: 'Curated Resources', value: '60+' },
+              { label: 'Skill Checkpoints', value: '25+' },
+              { label: 'Zero Cost', value: '100%' },
+            ].map((stat) => (
+              <div key={stat.label} className="p-4">
+                <div className="text-3xl font-black text-white sm:text-4xl">{stat.value}</div>
+                <div className="mt-1 text-sm text-slate-400">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-20">
-          <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-12 text-center">
-            <h2 className="text-3xl font-bold sm:text-4xl">Everything you need to accelerate your career</h2>
-            <p className="mx-auto mt-4 max-w-xl text-slate-400">Not just another course list. LearnPath AI combines skill analysis, personalized planning, and mentoring in one system.</p>
-          </motion.div>
+        <section className="px-4 py-20">
+          <div className="mx-auto max-w-6xl text-center">
+            <h2 className="text-3xl font-bold sm:text-4xl">Everything you need to level up</h2>
+            <p className="mx-auto mt-4 max-w-xl text-slate-400">Not just another course list. Skillora combines skill analysis, personalized planning, and mentoring in one system.</p>
+          </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => (
+          <div className="mx-auto mt-14 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { icon: Target, title: 'Skill-Gap Analysis', desc: 'Identify exact gaps between your current skill set and your target career role.' },
+              { icon: Map, title: 'Personalized Roadmap', desc: 'Step-by-step phased milestones tailored to your available hours and pace.' },
+              { icon: BookOpen, title: 'Smart Recommendations', desc: 'Curated free courses, documentation, and videos ranked by relevance.' },
+              { icon: CheckCircle, title: 'Adaptive Rescheduling', desc: 'Fell behind? Tell the AI to reduce weekly hours or re-balance your roadmap.' },
+              { icon: Sparkles, title: 'AI Mentor Companion', desc: 'Ask questions, get concept analogies, and explain confusing topics instantly.' },
+              { icon: Zap, title: 'Skill Assessments', desc: 'Verify your knowledge with quick diagnostic quizzes and track improvement.' },
+            ].map((feature, i) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="rounded-2xl border border-white/8 bg-slate-900/45 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.02)] transition hover:border-violet-400/35 hover:bg-slate-900/70"
+                transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border border-white/8 bg-slate-900/50 p-6 text-left transition hover:border-violet-500/30 hover:bg-slate-900/80"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
+                <div className="mb-4 inline-flex rounded-xl bg-violet-500/10 p-3 text-violet-400">
                   <feature.icon className="h-6 w-6" />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-white">{feature.title}</h3>
-                <p className="leading-relaxed text-slate-400">{feature.desc}</p>
+                <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -168,12 +166,12 @@ export default function HomePage() {
             <div className="mt-12 grid gap-8 sm:grid-cols-3">
               {[
                 { step: '01', title: 'Tell us your goal', desc: 'Select your target role and current skill level to create a meaningful starting point.' },
-                { step: '02', title: 'Rate your skills', desc: 'Use a quick self-assessment to highlight strengths and identify the biggest gaps.' },
+                { step: '02', rate: 'Rate your skills', desc: 'Use a quick self-assessment to highlight strengths and identify the biggest gaps.' },
                 { step: '03', title: 'Get your roadmap', desc: 'Receive a step-by-step plan with milestones, resources, and progress tracking.' },
               ].map((item, index) => (
                 <motion.div key={item.step} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.12 }} className="text-left rounded-2xl border border-white/8 bg-slate-900/40 p-6">
                   <div className="text-6xl font-black text-violet-500/30">{item.step}</div>
-                  <h3 className="mt-3 text-xl font-semibold text-white">{item.title}</h3>
+                  <h3 className="mt-3 text-xl font-semibold text-white">{item.title || item.rate}</h3>
                   <p className="mt-2 text-slate-400">{item.desc}</p>
                 </motion.div>
               ))}
@@ -197,7 +195,7 @@ export default function HomePage() {
       <footer className="relative z-10 border-t border-white/10 bg-[#020b18] py-8 text-center text-sm text-slate-500">
         <div className="mb-2 flex items-center justify-center gap-2">
           <Brain className="h-4 w-4 text-violet-400" />
-          <span className="font-semibold text-slate-200">LearnPath AI</span>
+          <span className="font-semibold text-slate-200">Skillora</span>
         </div>
         <p>Built for HCLTech Amplified Hackathon · AI-Powered · Open Source</p>
       </footer>

@@ -127,7 +127,7 @@ export default function ChatPage() {
               <Brain className="h-5 w-5 text-indigo-400" />
             </div>
             <div>
-              <p className="text-white font-semibold">LearnPath AI Mentor</p>
+              <p className="text-white font-semibold">Skillora AI Mentor</p>
               <p className="text-slate-500 text-xs">Personalized learning guidance</p>
             </div>
           </div>

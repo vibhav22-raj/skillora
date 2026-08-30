@@ -1,49 +1,60 @@
 'use client';
 
+import { motion } from 'framer-motion';
+import { Target, Award, GitBranch, Map, TrendingUp } from 'lucide-react';
+
+const steps = [
+  { icon: Target, title: 'Goal', subtitle: 'Target Career Role', color: 'from-violet-500 to-indigo-500', badge: 'Step 1' },
+  { icon: Award, title: 'Skills', subtitle: 'Self & Quiz Ratings', color: 'from-blue-500 to-cyan-500', badge: 'Step 2' },
+  { icon: GitBranch, title: 'Skill Gap', subtitle: 'Priority Gap Matrix', color: 'from-amber-500 to-orange-500', badge: 'Step 3' },
+  { icon: Map, title: 'Personalized Roadmap', subtitle: 'Phased Milestones', color: 'from-purple-500 to-pink-500', badge: 'Step 4' },
+  { icon: TrendingUp, title: 'Progress & Next Action', subtitle: 'Adaptive AI Tracking', color: 'from-emerald-500 to-teal-500', badge: 'Step 5' },
+];
+
 export default function HeroVisual() {
   return (
-    <div className="w-full h-full flex items-center justify-center relative">
-      <svg viewBox="0 0 400 320" className="max-w-full h-auto w-80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <radialGradient id="g1" cx="30%" cy="20%" r="80%">
-            <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.9" />
-            <stop offset="60%" stopColor="#06b6d4" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#0b0f19" stopOpacity="0" />
-          </radialGradient>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+    <div className="w-full max-w-md mx-auto p-4 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <rect x="0" y="0" width="100%" height="100%" rx="20" fill="url(#g1)" opacity="0.03" />
+      <div className="flex items-center justify-between mb-4 px-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+          Skillora Learning Pipeline
+        </span>
+        <span className="text-[11px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/50">
+          Deterministic + AI
+        </span>
+      </div>
 
-        {/* central wireframe */}
-        <g transform="translate(200,160)">
-          <circle cx="0" cy="0" r="92" fill="none" stroke="#14213d" strokeWidth="1" />
-          {[0,45,90,135,180,225,270,315].map((ang, i) => (
-            <line key={i} x1="0" y1="0" x2={(92*Math.cos((ang*Math.PI)/180)).toString()} y2={(92*Math.sin((ang*Math.PI)/180)).toString()} stroke="#0b1220" strokeWidth="0.8" />
-          ))}
-
-          {/* nodes */}
-          <g filter="url(#glow)">
-            <circle cx="-48" cy="-16" r="6" fill="#7c3aed" />
-            <circle cx="28" cy="-60" r="5" fill="#06b6d4" />
-            <circle cx="56" cy="20" r="7" fill="#8b5cf6" />
-            <circle cx="-8" cy="64" r="5" fill="#06b6d4" />
-            <circle cx="44" cy="-2" r="4" fill="#60a5fa" />
-          </g>
-
-          {/* connecting lines */}
-          <path d="M-48,-16 L28,-60" stroke="#2a3a57" strokeWidth="1" />
-          <path d="M-48,-16 L56,20" stroke="#2a3a57" strokeWidth="1" />
-          <path d="M28,-60 L56,20" stroke="#2a3a57" strokeWidth="1" />
-          <path d="M56,20 L-8,64" stroke="#2a3a57" strokeWidth="1" />
-        </g>
-      </svg>
+      <div className="space-y-2.5 relative">
+        {steps.map((step, idx) => {
+          const Icon = step.icon;
+          return (
+            <motion.div
+              key={step.title}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 * idx, duration: 0.4 }}
+              className="flex items-center gap-3.5 p-2.5 rounded-2xl bg-slate-850/70 border border-slate-800/60 hover:border-slate-700/80 transition-all group"
+            >
+              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white shadow-md shadow-black/20 shrink-0`}>
+                <Icon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-white truncate">{step.title}</h4>
+                  <span className="text-[10px] font-medium text-slate-400 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/40">
+                    {step.badge}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 truncate">{step.subtitle}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
