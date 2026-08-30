@@ -199,10 +199,7 @@ export default function HomePage() {
           <Brain className="h-4 w-4 text-violet-400" />
           <span className="font-semibold text-slate-200">LearnPath AI</span>
         </div>
-        <p>Built for HCLTech Amplified Hackathon · AI-powered skill roadmap platform</p>
-        <p className="mt-1">
-          Demo: <span className="rounded bg-slate-900 px-2 py-0.5 text-slate-300">demo@skillora.io</span> / <span className="rounded bg-slate-900 px-2 py-0.5 text-slate-300">DemoPass123</span>
-        </p>
+        <p>Built for HCLTech Amplified Hackathon · AI-Powered · Open Source</p>
       </footer>
     </div>
   );

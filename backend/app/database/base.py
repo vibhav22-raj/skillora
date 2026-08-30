@@ -36,8 +36,43 @@ async def get_db() -> AsyncSession:
 
 
 async def create_tables():
-    """Create all tables."""
+    """Create all tables and apply additive SQLite columns for existing databases."""
     async with engine.begin() as conn:
         import app.models  # noqa — registers all models with Base.metadata
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_ensure_additive_columns)
+
+
+def _ensure_additive_columns(sync_conn) -> None:
+    """Add new columns on existing SQLite databases without dropping data."""
+    dialect = sync_conn.dialect.name
+    if dialect != "sqlite":
+        return
+
+    additions = {
+        "learner_profiles": [
+            ("bio", "TEXT"),
+            ("profile_image", "TEXT"),
+        ],
+        "projects": [
+            ("domain", "VARCHAR(100)"),
+            ("problem_statement", "TEXT"),
+            ("business_value", "TEXT"),
+            ("resume_value", "VARCHAR(20)"),
+            ("technologies", "JSON"),
+            ("architecture", "TEXT"),
+            ("resume_bullet", "TEXT"),
+        ],
+    }
+
+    for table, columns in additions.items():
+        existing = {
+            row[1]
+            for row in sync_conn.exec_driver_sql(f"PRAGMA table_info({table})").fetchall()
+        }
+        if not existing:
+            continue
+        for name, col_type in columns:
+            if name not in existing:
+                sync_conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {name} {col_type}")
 

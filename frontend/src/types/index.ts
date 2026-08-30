@@ -21,7 +21,10 @@ export interface LearnerProfile {
   preferred_duration: 'short' | 'medium' | 'long' | null;
   strengths: string[];
   weaknesses: string[];
+  bio: string | null;
+  profile_image: string | null;
 }
+
 
 export interface Skill {
   id: string;
@@ -88,6 +91,13 @@ export interface Project {
   category: string | null;
   tags: string[];
   github_template_url: string | null;
+  domain?: string | null;
+  problem_statement?: string | null;
+  business_value?: string | null;
+  resume_value?: string | null;
+  technologies?: string[] | null;
+  architecture?: string | null;
+  resume_bullet?: string | null;
 }
 
 export interface RoadmapPhase {
@@ -129,6 +139,8 @@ export interface AssessmentQuestion {
   question: string;
   options: string[];
   type: string;
+  difficulty?: string;
+  topic?: string;
   explanation?: string;
 }
 
@@ -149,6 +161,21 @@ export interface AssessmentResult {
   skill_estimate: number;
   feedback: string;
   recommendations: string[];
+  strong_areas?: string[];
+  weak_areas?: string[];
+  next_recommended_action?: string | null;
+  recommended_resources?: string[];
+  overall_feedback?: string;
+  question_review?: {
+    id: string;
+    question: string;
+    selected_answer: number;
+    correct_answer: number;
+    is_correct: boolean;
+    explanation?: string;
+    topic?: string;
+    difficulty?: string;
+  }[];
 }
 
 export interface ChatMessage {
@@ -181,6 +208,7 @@ export interface NextBestAction {
   resource_id: string | null;
   estimated_minutes: number;
   reason: string;
+  skill?: string;
 }
 
 export interface TodayTask {

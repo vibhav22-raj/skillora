@@ -223,6 +223,73 @@ PROJECTS_DATA = [
 ]
 
 # ─── Assessment Data ───────────────────────────────────────────────────────
+INDUSTRY_PROJECTS_EXTRA = [
+    {"title": "Demand Forecasting Pipeline", "description": "Forecast product demand from historical sales, promotions, and seasonality. Include model comparison and forecast explainability.", "skills": ["Machine Learning", "Python", "Statistics"], "difficulty": 4, "duration_hours": 18, "category": "Machine Learning", "tags": ["forecasting", "time-series", "business"]},
+    {"title": "Resume Skill Analyzer", "description": "Extract skills from resumes, compare them with a target role, and generate a prioritized learning gap report.", "skills": ["NLP", "Python", "Generative AI"], "difficulty": 4, "duration_hours": 18, "category": "Generative AI", "tags": ["resume", "nlp", "career"]},
+    {"title": "Document Classification Service", "description": "Classify PDFs or text documents into business categories with preprocessing, model serving, and confidence scores.", "skills": ["NLP", "Machine Learning", "REST APIs"], "difficulty": 4, "duration_hours": 20, "category": "NLP", "tags": ["classification", "documents", "api"]},
+    {"title": "Document Q&A Assistant", "description": "Build a question-answering assistant over uploaded documents using embeddings, retrieval, and a lightweight web UI.", "skills": ["Generative AI", "NLP", "Python"], "difficulty": 4, "duration_hours": 22, "category": "Generative AI", "tags": ["rag", "embeddings", "qa"]},
+    {"title": "Meeting Summarizer", "description": "Summarize transcripts into decisions, blockers, owners, and follow-up tasks with exportable notes.", "skills": ["Generative AI", "NLP", "Python"], "difficulty": 3, "duration_hours": 14, "category": "Generative AI", "tags": ["summarization", "productivity", "nlp"]},
+    {"title": "Code Explanation Assistant", "description": "Paste code and receive plain-language explanations, complexity notes, and suggested test cases.", "skills": ["Generative AI", "Python", "REST APIs"], "difficulty": 4, "duration_hours": 18, "category": "Generative AI", "tags": ["code", "assistant", "developer-tools"]},
+    {"title": "Customer Segmentation Analysis", "description": "Segment customers using clustering, profile each group, and recommend targeted business actions.", "skills": ["Machine Learning", "Statistics", "Data Visualization"], "difficulty": 3, "duration_hours": 14, "category": "Data Science", "tags": ["clustering", "analytics", "marketing"]},
+    {"title": "Business KPI Analytics Dashboard", "description": "Create an executive dashboard with revenue, retention, funnel, and cohort metrics from raw event data.", "skills": ["SQL", "Data Visualization", "Python"], "difficulty": 3, "duration_hours": 16, "category": "Data Analysis", "tags": ["bi", "dashboard", "kpi"]},
+    {"title": "Authentication System", "description": "Implement registration, login, refresh tokens, roles, password reset, and audit logging.", "skills": ["REST APIs", "Security", "SQL"], "difficulty": 3, "duration_hours": 16, "category": "Backend", "tags": ["auth", "jwt", "security"]},
+    {"title": "E-commerce Backend API", "description": "Build catalog, cart, orders, payments mock, inventory, and admin APIs with tests and pagination.", "skills": ["REST APIs", "SQL", "Python"], "difficulty": 4, "duration_hours": 24, "category": "Backend", "tags": ["ecommerce", "api", "testing"]},
+    {"title": "Real-time Notification System", "description": "Design a notification service with queues, WebSockets, preferences, retries, and delivery status.", "skills": ["System Design", "Node.js", "REST APIs"], "difficulty": 4, "duration_hours": 22, "category": "System Design", "tags": ["realtime", "queues", "websocket"]},
+    {"title": "REST API Platform", "description": "Build a reusable API platform with auth, rate limits, versioning, documentation, and monitoring hooks.", "skills": ["REST APIs", "System Design", "Testing"], "difficulty": 4, "duration_hours": 20, "category": "Backend", "tags": ["platform", "api", "observability"]},
+    {"title": "OCR Document Processor", "description": "Extract text from scanned documents, clean fields, validate confidence, and store searchable records.", "skills": ["Computer Vision", "Python", "REST APIs"], "difficulty": 4, "duration_hours": 20, "category": "Computer Vision", "tags": ["ocr", "documents", "extraction"]},
+    {"title": "Manufacturing Defect Detection", "description": "Classify product images as defective or healthy and explain model confidence for quality review.", "skills": ["Computer Vision", "Deep Learning", "Python"], "difficulty": 5, "duration_hours": 26, "category": "Computer Vision", "tags": ["defect-detection", "cnn", "quality"]},
+    {"title": "Log Anomaly Detection", "description": "Detect unusual system behavior from application logs and raise severity-ranked alerts.", "skills": ["Machine Learning", "Security", "Python"], "difficulty": 4, "duration_hours": 20, "category": "Cybersecurity", "tags": ["logs", "anomaly", "security"]},
+    {"title": "Phishing Detection Classifier", "description": "Classify suspicious URLs or emails using feature engineering, explainability, and safe evaluation metrics.", "skills": ["Machine Learning", "Security", "NLP"], "difficulty": 4, "duration_hours": 18, "category": "Cybersecurity", "tags": ["phishing", "classification", "security"]},
+    {"title": "CI/CD Health Dashboard", "description": "Track build status, deployment frequency, failure rate, and recovery time from CI pipeline data.", "skills": ["CI/CD", "Data Visualization", "React"], "difficulty": 3, "duration_hours": 16, "category": "DevOps", "tags": ["cicd", "dashboard", "metrics"]},
+    {"title": "Monitoring Dashboard", "description": "Build a service monitoring dashboard with uptime, latency, error rate, alerts, and incident notes.", "skills": ["Monitoring", "React", "REST APIs"], "difficulty": 4, "duration_hours": 20, "category": "DevOps", "tags": ["observability", "alerts", "sre"]},
+    {"title": "Feature Store Mini Platform", "description": "Create a lightweight feature registry with offline storage, validation, and model training examples.", "skills": ["MLOps", "Python", "SQL"], "difficulty": 5, "duration_hours": 28, "category": "MLOps", "tags": ["feature-store", "mlops", "data"]},
+    {"title": "A/B Test Analyzer", "description": "Analyze experiment results, calculate confidence intervals, detect sample ratio mismatch, and report decisions.", "skills": ["Statistics", "SQL", "Data Visualization"], "difficulty": 3, "duration_hours": 14, "category": "Data Science", "tags": ["experimentation", "statistics", "analytics"]},
+]
+
+
+def _technologies_for_project(project: dict) -> list:
+    skills = set(project.get("skills", []))
+    category = project.get("category", "")
+    technologies = ["Git", "GitHub", "Documentation"]
+    if "Python" in skills or category in {"Machine Learning", "Data Science", "Data Analysis", "NLP", "Computer Vision", "MLOps"}:
+        technologies.extend(["Python", "Pandas", "scikit-learn"])
+    if "Deep Learning" in skills or "Computer Vision" in skills:
+        technologies.extend(["PyTorch", "OpenCV"])
+    if "Generative AI" in skills:
+        technologies.extend(["Embeddings", "Vector Search", "FastAPI"])
+    if "React" in skills or "JavaScript" in skills or category in {"Frontend", "Full Stack"}:
+        technologies.extend(["React", "TypeScript", "Tailwind CSS"])
+    if "REST APIs" in skills or category in {"Backend", "System Design"}:
+        technologies.extend(["FastAPI", "SQLAlchemy", "SQLite"])
+    if "Docker" in skills or "CI/CD" in skills or category in {"DevOps", "MLOps"}:
+        technologies.extend(["Docker", "GitHub Actions"])
+    if "SQL" in skills:
+        technologies.extend(["SQL", "SQLite"])
+    if "Security" in skills:
+        technologies.extend(["OWASP Basics", "Secure Validation"])
+    return list(dict.fromkeys(technologies))
+
+
+def _project_metadata(project: dict) -> dict:
+    domain = project.get("domain") or project.get("category") or "Software Engineering"
+    technologies = project.get("technologies") or _technologies_for_project(project)
+    skills = ", ".join(project.get("skills", [])[:4]) or "core engineering skills"
+    title = project["title"]
+    return {
+        **project,
+        "domain": domain,
+        "problem_statement": project.get("problem_statement") or f"Build {title} to solve a practical {domain.lower()} problem with production-style constraints.",
+        "business_value": project.get("business_value") or f"Demonstrates how {skills} can create measurable operational, product, or decision-making value.",
+        "resume_value": project.get("resume_value") or ("High" if project.get("difficulty", 1) >= 4 else "Medium"),
+        "technologies": technologies,
+        "architecture": project.get("architecture") or "Frontend or notebook workflow, backend/service layer where relevant, persistent storage, evaluation/reporting, and deployment-ready documentation.",
+        "resume_bullet": project.get("resume_bullet") or f"Built {title} using {', '.join(technologies[:4])} to demonstrate {skills}.",
+    }
+
+
+ALL_PROJECTS_DATA = [_project_metadata(p) for p in PROJECTS_DATA + INDUSTRY_PROJECTS_EXTRA]
+
+
 ASSESSMENTS_DATA = [
     {
         "skill_name": "Python",
@@ -230,6 +297,49 @@ ASSESSMENTS_DATA = [
         "passing_score": 70.0,
         "estimated_minutes": 25,
         "questions": [
+            {
+                "id": "py_code_1",
+                "type": "coding",
+                "question": "Implement a function `count_frequencies(words)` that takes a list of strings and returns a dictionary with word frequencies (case-insensitive).",
+                "starter_code": "def count_frequencies(words: list) -> dict:\n    # Write your solution here\n    freq = {}\n    for word in words:\n        w = word.lower()\n        freq[w] = freq.get(w, 0) + 1\n    return freq",
+                "test_cases": [
+                    {"input": "['apple', 'Banana', 'APPLE', 'orange']", "output": "{'apple': 2, 'banana': 1, 'orange': 1}"}
+                ],
+                "hints": [
+                    "Use .lower() to ensure case-insensitivity.",
+                    "Use dict.get(key, 0) or collections.Counter for efficient counting."
+                ],
+                "practice_url": "https://leetcode.com/problems/valid-anagram/",
+                "platform": "LeetCode",
+                "options": [
+                    "Use a dict with .lower() and dict.get(w, 0) + 1 (O(N) time, O(U) space)",
+                    "Nested for-loops counting each word with words.count() (O(N²) time)",
+                    "Convert to set then use words.count() without lowercasing",
+                    "Sort the list first then use binary search for each word"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "Using a dictionary with .lower() and dict.get(w, 0) + 1 executes in linear O(N) time and handles case-insensitivity cleanly."
+            },
+            {
+                "id": "py_code_2",
+                "type": "coding",
+                "question": "Implement a class `BankAccount` with `deposit(amount)` and `withdraw(amount)` methods that properly updates balance and raises ValueError if withdrawing more than balance.",
+                "starter_code": "class BankAccount:\n    def __init__(self, initial_balance: float = 0.0):\n        self.balance = initial_balance\n        \n    def deposit(self, amount: float) -> float:\n        self.balance += amount\n        return self.balance\n        \n    def withdraw(self, amount: float) -> float:\n        if amount > self.balance:\n            raise ValueError('Insufficient funds')\n        self.balance -= amount\n        return self.balance",
+                "test_cases": [
+                    {"input": "acc = BankAccount(100); acc.deposit(50); acc.withdraw(30)", "output": "balance = 120.0"}
+                ],
+                "hints": ["Store balance as an instance attribute `self.balance`.", "Check if `amount > self.balance` before subtracting."],
+                "options": [
+                    "Store balance in self.balance, check amount > self.balance before subtracting",
+                    "Use global variable balance without encapsulation",
+                    "Allow balance to go negative without raising an exception",
+                    "Use class-level variable BankAccount.balance shared across all accounts"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "Encapsulating balance within instance variable `self.balance` and validating withdrawal amount ensures data integrity."
+            },
             {"id": "py1", "question": "What is the output of `print(type([]))` ?", "options": ["<class 'list'>", "<class 'tuple'>", "<class 'array'>", "<class 'dict'>"], "correct_answer": 0, "difficulty": "easy", "explanation": "[] creates an empty list, so type([]) returns <class 'list'>."},
             {"id": "py2", "question": "Which of these is NOT a valid Python data type?", "options": ["int", "float", "char", "bool"], "correct_answer": 2, "difficulty": "easy", "explanation": "Python has no 'char' type. Single characters are strings (str)."},
             {"id": "py3", "question": "What does `len('hello')` return?", "options": ["4", "5", "6", "Error"], "correct_answer": 1, "difficulty": "easy", "explanation": "'hello' has 5 characters, so len() returns 5."},
@@ -248,8 +358,6 @@ ASSESSMENTS_DATA = [
             {"id": "py16", "question": "What is the output of `try: 1/0 except ZeroDivisionError: print('caught') finally: print('done')` ?", "options": ["caught", "done", "caught\\ndone", "Error"], "correct_answer": 2, "difficulty": "hard", "explanation": "The except block catches ZeroDivisionError and prints 'caught'. The finally block ALWAYS runs and prints 'done'."},
             {"id": "py17", "question": "You have a function that should cache expensive results. Which Python tool is most appropriate?", "options": ["try/except", "@functools.lru_cache", "global variables", "threading.Lock"], "correct_answer": 1, "difficulty": "hard", "explanation": "@functools.lru_cache memoizes function results, so repeated calls with the same arguments return cached results instantly."},
             {"id": "py18", "question": "What is the GIL (Global Interpreter Lock)?", "options": ["A security feature blocking dangerous code", "A mutex that prevents multiple Python threads from executing Python bytecodes simultaneously", "A way to lock variables", "A garbage collection mechanism"], "correct_answer": 1, "difficulty": "hard", "explanation": "The GIL ensures only one thread executes Python bytecode at a time, which affects CPU-bound multithreaded programs."},
-            {"id": "py19", "question": "What is the output of `sorted([3,1,2], key=lambda x: -x)` ?", "options": ["[1, 2, 3]", "[3, 2, 1]", "[-3, -2, -1]", "Error"], "correct_answer": 1, "difficulty": "hard", "explanation": "The key=lambda x: -x sorts by negative value, which reverses the order: [3, 2, 1]."},
-            {"id": "py20", "question": "What is the difference between `deepcopy` and `copy` from the copy module?", "options": ["No difference", "deepcopy creates an independent copy of all nested objects; copy only copies the outer object", "copy is faster only", "deepcopy only works with lists"], "correct_answer": 1, "difficulty": "hard", "explanation": "copy() creates a shallow copy (nested objects are shared). deepcopy() recursively copies all nested objects."},
         ]
     },
     {
@@ -258,6 +366,30 @@ ASSESSMENTS_DATA = [
         "passing_score": 70.0,
         "estimated_minutes": 30,
         "questions": [
+            {
+                "id": "ml_code_1",
+                "type": "coding",
+                "question": "Implement a Scikit-Learn data preprocessing function `prepare_features(df, numerical_cols)` that fills missing values with the median and applies StandardScaler.",
+                "starter_code": "from sklearn.preprocessing import StandardScaler\nfrom sklearn.impute import SimpleImputer\nimport pandas as pd\n\ndef prepare_features(df: pd.DataFrame, num_cols: list):\n    # Step 1: Impute missing values with median\n    imputer = SimpleImputer(strategy='median')\n    df[num_cols] = imputer.fit_transform(df[num_cols])\n    \n    # Step 2: Scale features\n    scaler = StandardScaler()\n    df[num_cols] = scaler.fit_transform(df[num_cols])\n    return df",
+                "test_cases": [
+                    {"input": "df with missing ages: [25, NaN, 35]", "output": "scaled values with 0 mean and 1 variance"}
+                ],
+                "hints": [
+                    "Use SimpleImputer(strategy='median') to handle outliers safely.",
+                    "Fit and transform the imputer first, then fit and transform StandardScaler."
+                ],
+                "practice_url": "https://www.kaggle.com/learn/intro-to-machine-learning",
+                "platform": "Kaggle",
+                "options": [
+                    "SimpleImputer(strategy='median') followed by StandardScaler() on numerical columns",
+                    "Drop all rows with NaN values and multiply by 100",
+                    "Fill NaNs with 0 and use OneHotEncoder on continuous columns",
+                    "Replace NaNs with string 'missing' without scaling"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "Median imputation preserves central tendency robustly against outliers, and StandardScaler normalizes features to zero mean and unit variance."
+            },
             {"id": "ml1", "question": "What is overfitting in machine learning?", "options": ["The model is too simple", "The model performs well on training data but poorly on new data", "Training takes too long", "The dataset is too large"], "correct_answer": 1, "difficulty": "easy", "explanation": "Overfitting occurs when a model memorizes training data patterns but fails to generalize."},
             {"id": "ml2", "question": "What does 'training accuracy: 99%, validation accuracy: 65%' most likely indicate?", "options": ["Good model", "Underfitting", "Overfitting", "Perfect generalization"], "correct_answer": 2, "difficulty": "easy", "explanation": "High training but low validation accuracy is a classic sign of overfitting."},
             {"id": "ml3", "question": "What does the 'k' in K-Nearest Neighbors represent?", "options": ["Number of features", "Number of training iterations", "Number of nearest neighbors to consider", "Number of classes"], "correct_answer": 2, "difficulty": "easy", "explanation": "k is the number of nearest neighbors used to make a prediction."},
@@ -274,10 +406,6 @@ ASSESSMENTS_DATA = [
             {"id": "ml14", "question": "Your model achieves 98% accuracy on test data. A domain expert says results look suspicious. What should you check first?", "options": ["The model architecture", "Data leakage (test data information bleeding into training)", "Learning rate", "Number of epochs"], "correct_answer": 1, "difficulty": "hard", "explanation": "Suspiciously high accuracy often indicates data leakage — test set labels influencing training through improper preprocessing."},
             {"id": "ml15", "question": "What does PCA (Principal Component Analysis) primarily do?", "options": ["Classifies data", "Reduces dimensionality by finding directions of maximum variance", "Handles missing values", "Improves model accuracy directly"], "correct_answer": 1, "difficulty": "hard", "explanation": "PCA projects data onto principal components (directions of maximum variance) to reduce dimensions while preserving information."},
             {"id": "ml16", "question": "What is a learning rate scheduler?", "options": ["A tool to set training time", "A technique to adaptively change the learning rate during training", "A method to select the best model", "Hardware configuration for ML"], "correct_answer": 1, "difficulty": "hard", "explanation": "Learning rate schedulers reduce the learning rate over time, helping the model converge more precisely."},
-            {"id": "ml17", "question": "What is the key difference between classification and regression?", "options": ["Speed of training", "Classification predicts discrete categories; regression predicts continuous values", "Number of features", "Algorithm type only"], "correct_answer": 1, "difficulty": "easy", "explanation": "Classification: Is this email spam? (yes/no). Regression: What will house prices be? (a number)."},
-            {"id": "ml18", "question": "What is ensemble learning?", "options": ["Training on multiple datasets", "Combining predictions from multiple models to improve performance", "A type of neural network", "Data augmentation"], "correct_answer": 1, "difficulty": "medium", "explanation": "Ensemble methods (Random Forest, Gradient Boosting) combine multiple weaker models to create a stronger predictor."},
-            {"id": "ml19", "question": "When should you normalize/standardize features?", "options": ["Never", "Only for tree-based models", "When using distance-based algorithms (KNN, SVM, k-means) or gradient-based optimization", "Only when accuracy is low"], "correct_answer": 2, "difficulty": "hard", "explanation": "Distance-based algorithms are sensitive to feature scales. Gradient descent converges faster with normalized features."},
-            {"id": "ml20", "question": "What does SHAP (SHapley Additive exPlanations) help with?", "options": ["Model training speed", "Explaining individual predictions by quantifying each feature's contribution", "Data preprocessing", "Hyperparameter tuning"], "correct_answer": 1, "difficulty": "hard", "explanation": "SHAP provides model interpretability by showing how much each feature contributed to a specific prediction."},
         ]
     },
     {
@@ -286,6 +414,56 @@ ASSESSMENTS_DATA = [
         "passing_score": 70.0,
         "estimated_minutes": 30,
         "questions": [
+            {
+                "id": "dsa_code_1",
+                "type": "coding",
+                "question": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers such that they add up to `target`. Time complexity must be O(N).",
+                "starter_code": "def two_sum(nums: list[int], target: int) -> list[int]:\n    # Hash map to store complement -> index\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return []",
+                "test_cases": [
+                    {"input": "nums = [2, 7, 11, 15], target = 9", "output": "[0, 1]"},
+                    {"input": "nums = [3, 2, 4], target = 6", "output": "[1, 2]"}
+                ],
+                "hints": [
+                    "Can you solve this in one pass using a Hash Map?",
+                    "Store `target - num` as the key and the current index as the value."
+                ],
+                "practice_url": "https://leetcode.com/problems/two-sum/",
+                "platform": "LeetCode",
+                "options": [
+                    "Single pass using a Hash Map: O(N) time, O(N) space",
+                    "Two nested loops checking all pairs: O(N²) time, O(1) space",
+                    "Sort the array then use two pointers: O(N log N) time",
+                    "Binary search every element: O(N log N) time"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "A hash map enables O(1) lookups for the complement `target - num`, allowing the entire list to be processed in linear O(N) time."
+            },
+            {
+                "id": "dsa_code_2",
+                "type": "coding",
+                "question": "Implement Binary Search to find the index of `target` in a sorted array `nums`. Return `-1` if target is not found. Time complexity must be O(log N).",
+                "starter_code": "def binary_search(nums: list[int], target: int) -> int:\n    left, right = 0, len(nums) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if nums[mid] == target:\n            return mid\n        elif nums[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1",
+                "test_cases": [
+                    {"input": "nums = [-1,0,3,5,9,12], target = 9", "output": "4"},
+                    {"input": "nums = [-1,0,3,5,9,12], target = 2", "output": "-1"}
+                ],
+                "hints": [
+                    "Maintain `left` and `right` pointers.",
+                    "Calculate `mid = (left + right) // 2` and halve the search space at each iteration."
+                ],
+                "practice_url": "https://leetcode.com/problems/binary-search/",
+                "platform": "LeetCode",
+                "options": [
+                    "Divide search space in half each iteration with two pointers: O(log N) time, O(1) space",
+                    "Linear scan from index 0 to N-1: O(N) time",
+                    "Recursively slice the array `nums[:mid]`: O(N) space due to list copying",
+                    "Sort the array again and check index 0: O(N log N) time"
+                ],
+                "correct_answer": 0,
+                "difficulty": "easy",
+                "explanation": "Binary search halves the remaining elements at each step using two pointers, achieving optimal O(log N) time complexity with O(1) space."
+            },
             {"id": "dsa1", "question": "What is the time complexity of binary search?", "options": ["O(n)", "O(log n)", "O(n log n)", "O(1)"], "correct_answer": 1, "difficulty": "easy", "explanation": "Binary search halves the search space each step: O(log n)."},
             {"id": "dsa2", "question": "Which data structure uses LIFO (Last In, First Out)?", "options": ["Queue", "Stack", "Linked List", "Heap"], "correct_answer": 1, "difficulty": "easy", "explanation": "A Stack follows LIFO — the last element added is the first removed."},
             {"id": "dsa3", "question": "What is the worst-case time complexity of Quicksort?", "options": ["O(n log n)", "O(n²)", "O(n)", "O(log n)"], "correct_answer": 1, "difficulty": "easy", "explanation": "Quicksort degrades to O(n²) with bad pivot selection (e.g., already sorted arrays with first-element pivot)."},
@@ -302,10 +480,6 @@ ASSESSMENTS_DATA = [
             {"id": "dsa14", "question": "What distinguishes a graph from a tree?", "options": ["Graphs have more nodes", "Graphs can have cycles; trees are acyclic connected graphs", "Trees are directed; graphs are not", "No difference"], "correct_answer": 1, "difficulty": "medium", "explanation": "Trees are connected acyclic graphs with exactly n-1 edges for n nodes. Graphs can have cycles and may be disconnected."},
             {"id": "dsa15", "question": "Dijkstra's algorithm fails on graphs with which type of edges?", "options": ["Directed edges", "Undirected edges", "Negative weight edges", "Weighted edges"], "correct_answer": 2, "difficulty": "hard", "explanation": "Dijkstra's assumes all edge weights are non-negative. For negative weights, use Bellman-Ford."},
             {"id": "dsa16", "question": "What is the difference between DFS and BFS in terms of space complexity?", "options": ["DFS: O(n), BFS: O(n)", "DFS: O(h) where h=height, BFS: O(w) where w=max width of a level", "Both O(1)", "DFS: O(log n), BFS: O(n)"], "correct_answer": 1, "difficulty": "hard", "explanation": "DFS uses stack space proportional to height. BFS uses queue space proportional to the widest level."},
-            {"id": "dsa17", "question": "What does amortized O(1) mean for dynamic array append?", "options": ["Every append is O(1)", "On average across many operations, each append is O(1) even though occasional resizing costs O(n)", "Append is free", "Only the first append is O(1)"], "correct_answer": 1, "difficulty": "hard", "explanation": "When a dynamic array resizes, it doubles capacity. The total cost spread across all appends averages to O(1) per operation."},
-            {"id": "dsa18", "question": "What is a trie data structure used for?", "options": ["Sorting numbers", "Efficient prefix-based string search and autocomplete", "Graph traversal", "Heap operations"], "correct_answer": 1, "difficulty": "hard", "explanation": "A trie stores strings character by character, enabling O(L) prefix search where L is string length — ideal for autocomplete."},
-            {"id": "dsa19", "question": "What is the difference between stable and unstable sorting algorithms?", "options": ["Speed difference", "Stable sorts maintain relative order of equal elements; unstable may not", "Memory usage", "Stability affects only floating-point numbers"], "correct_answer": 1, "difficulty": "medium", "explanation": "Stable: Merge Sort, Insertion Sort. Unstable: Quick Sort, Heap Sort. Important when sorting objects by multiple keys."},
-            {"id": "dsa20", "question": "What is a segment tree used for?", "options": ["Sorting large arrays", "Efficient range queries (sum, min, max) and point updates on arrays: O(log n)", "Graph shortest paths", "Hashing strings"], "correct_answer": 1, "difficulty": "hard", "explanation": "Segment trees support range queries (e.g., sum of elements from index i to j) and updates in O(log n) time."},
         ]
     },
     {
@@ -361,6 +535,7 @@ ASSESSMENTS_DATA = [
 
 async def seed_database():
     """Main seed function — idempotent, safe to run multiple times."""
+    from backend.app.models import User
     async with AsyncSessionLocal() as db:
         try:
             await _seed_skills(db)
@@ -368,6 +543,13 @@ async def seed_database():
             await _seed_projects(db)
             await _seed_assessments(db)
             await _seed_demo_user(db)
+            # Also seed progress for already-existing demo users (idempotent)
+            demo_result = await db.execute(
+                select(User).where(User.email == "demo@learnpath.ai")
+            )
+            demo_user = demo_result.scalar_one_or_none()
+            if demo_user:
+                await _seed_demo_progress(db, demo_user.id)
             await db.commit()
         except Exception as e:
             await db.rollback()
@@ -432,32 +614,42 @@ async def _seed_projects(db: AsyncSession):
     from app.models import Project
     from sqlalchemy import select
 
-    result = await db.execute(select(Project).limit(1))
-    if result.scalar_one_or_none():
-        return
+    added = 0
+    updated = 0
+    for p in ALL_PROJECTS_DATA:
+        result = await db.execute(select(Project).where(Project.title == p["title"]))
+        project = result.scalar_one_or_none()
 
-    for p in PROJECTS_DATA:
-        project = Project(
-            id=gen_id(),
-            title=p["title"],
-            description=p.get("description", ""),
-            skills=p["skills"],
-            difficulty=p["difficulty"],
-            duration_hours=p["duration_hours"],
-            category=p["category"],
-            tags=p.get("tags", []),
-            domain=p.get("domain"),
-            problem_statement=p.get("problem_statement"),
-            business_value=p.get("business_value"),
-            resume_value=p.get("resume_value"),
-            technologies=p.get("technologies", []),
-            architecture=p.get("architecture"),
-            resume_bullet=p.get("resume_bullet"),
-        )
+        if not project:
+            project = Project(
+                id=gen_id(),
+                title=p["title"],
+                description=p.get("description", ""),
+                skills=p["skills"],
+                difficulty=p["difficulty"],
+                duration_hours=p["duration_hours"],
+                category=p["category"],
+                tags=p.get("tags", []),
+            )
+            db.add(project)
+            added += 1
 
-        db.add(project)
+        for field in (
+            "domain",
+            "problem_statement",
+            "business_value",
+            "resume_value",
+            "technologies",
+            "architecture",
+            "resume_bullet",
+        ):
+            value = p.get(field)
+            if value and not getattr(project, field):
+                setattr(project, field, value)
+                updated += 1
+
     await db.flush()
-    print(f"[Seed] Added {len(PROJECTS_DATA)} projects")
+    print(f"[Seed] Processed {len(ALL_PROJECTS_DATA)} projects ({added} added, {updated} metadata fields updated)")
 
 
 async def _seed_assessments(db: AsyncSession):
@@ -560,6 +752,68 @@ async def _seed_demo_user(db: AsyncSession):
         )
         db.add(user_skill)
 
+    # Create demo progress records for realistic streak/progress
+    from backend.app.models import Progress
+    from datetime import datetime, timedelta
+    import random
+
+    demo_progress = [
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "completed",
+            "completion_percentage": 100,
+            "time_spent_hours": 2.5,
+            "days_ago": 1,
+        },
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "completed",
+            "completion_percentage": 100,
+            "time_spent_hours": 3.0,
+            "days_ago": 2,
+        },
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "completed",
+            "completion_percentage": 100,
+            "time_spent_hours": 1.5,
+            "days_ago": 3,
+        },
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "in_progress",
+            "completion_percentage": 45,
+            "time_spent_hours": 1.0,
+            "days_ago": 0,
+        },
+    ]
+
+    for i, prog_data in enumerate(demo_progress):
+        completed_at = None
+        updated_at = datetime.utcnow()
+        if prog_data["status"] == "completed":
+            completed_at = datetime.utcnow() - timedelta(days=prog_data["days_ago"])
+            updated_at = completed_at
+        else:
+            updated_at = datetime.utcnow() - timedelta(hours=random.randint(1, 5))
+
+        progress = Progress(
+            id=gen_id(),
+            user_id=demo_user.id,
+            resource_id=prog_data["resource_id"],
+            project_id=prog_data["project_id"],
+            status=prog_data["status"],
+            completion_percentage=prog_data["completion_percentage"],
+            time_spent_hours=prog_data["time_spent_hours"],
+            completed_at=completed_at,
+            updated_at=updated_at,
+        )
+        db.add(progress)
+
     # Create demo roadmap
     demo_roadmap = Roadmap(
         id=gen_id(),
@@ -645,4 +899,55 @@ async def _seed_demo_user(db: AsyncSession):
     )
     db.add(demo_roadmap)
     await db.flush()
-    print("[Seed] Demo user created: demo@skillora.io / DemoPass123")
+    await _seed_demo_progress(db, demo_user.id)
+    print("[Seed] Demo user created: demo@learnpath.ai / Demo@12345")
+
+
+async def _seed_demo_progress(db: AsyncSession, user_id: str):
+    """Seed realistic progress records for demo user so dashboard shows non-zero data."""
+    from backend.app.models import Progress, LearningResource
+    from sqlalchemy import select
+    from datetime import datetime, timedelta
+
+    # Check if progress already seeded
+    existing = await db.execute(
+        select(Progress).where(Progress.user_id == user_id).limit(1)
+    )
+    if existing.scalar_one_or_none():
+        return  # Already seeded
+
+    # Get first 5 resources from DB to mark as completed/in_progress
+    res_result = await db.execute(select(LearningResource).limit(10))
+    resources = res_result.scalars().all()
+    if not resources:
+        return
+
+    now = datetime.utcnow()
+    # Seed 3 completed + 2 in_progress resources spanning last 30 days
+    progress_data = [
+        {"idx": 0, "status": "completed", "pct": 100, "hours": 8.0, "days_ago": 25},
+        {"idx": 1, "status": "completed", "pct": 100, "hours": 12.0, "days_ago": 18},
+        {"idx": 2, "status": "completed", "pct": 100, "hours": 6.0, "days_ago": 10},
+        {"idx": 3, "status": "in_progress", "pct": 65, "hours": 4.5, "days_ago": 5},
+        {"idx": 4, "status": "in_progress", "pct": 30, "hours": 2.0, "days_ago": 1},
+    ]
+
+    for pd in progress_data:
+        if pd["idx"] >= len(resources):
+            break
+        resource = resources[pd["idx"]]
+        updated = now - timedelta(days=pd["days_ago"])
+        completed_at = updated if pd["status"] == "completed" else None
+        prog = Progress(
+            id=gen_id(),
+            user_id=user_id,
+            resource_id=resource.id,
+            status=pd["status"],
+            completion_percentage=pd["pct"],
+            time_spent_hours=pd["hours"],
+            updated_at=updated,
+            completed_at=completed_at,
+        )
+        db.add(prog)
+
+    print("[Seed] Demo progress records seeded (5 resources)")

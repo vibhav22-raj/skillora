@@ -125,6 +125,18 @@ async def get_dashboard(
         scored.sort(key=lambda x: x["score"], reverse=True)
         top_resources = scored[:3]
 
+    # Determine current phase title
+    current_phase_title = None
+    for ph in phases:
+        if isinstance(ph, dict) and ph.get("status") == "in_progress":
+            current_phase_title = ph.get("title")
+            break
+    if not current_phase_title:
+        for ph in phases:
+            if isinstance(ph, dict) and ph.get("status") == "not_started":
+                current_phase_title = ph.get("title")
+                break
+
     return ApiResponse(
         success=True,
         data={
@@ -133,7 +145,7 @@ async def get_dashboard(
             "overall_progress": overall_progress,
             "current_streak": streak,
             "hours_learned": round(total_hours, 1),
-            "skills_improved": len([us for us in user_skills if us.current_level > 0]),
+            "skills_improved": len([us for us in user_skills if us.current_level > 1]),  # skills with meaningful level (>1)
             "completed_resources": completed,
             "in_progress_resources": in_progress_count,
             "next_best_action": next_action,
@@ -146,9 +158,11 @@ async def get_dashboard(
                 "total_phases": len(phases),
                 "total_weeks": roadmap.total_weeks if roadmap else 0,
                 "title": roadmap.title if roadmap else None,
+                "current_phase": current_phase_title,
             },
         },
     )
+
 
 
 def _calculate_streak(progress_items: list) -> int:

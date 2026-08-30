@@ -85,27 +85,32 @@ export default function ChatPage() {
   return (
     <div className="flex h-full" style={{ height: 'calc(100vh - 56px)' }}>
       {/* Sessions sidebar */}
-      <div className="w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col hidden md:flex">
-        <div className="p-4 border-b border-slate-800">
-          <button onClick={startNewChat}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition-all text-sm">
+      <div className="w-64 shrink-0 border-r border-slate-800 bg-linear-to-b from-slate-900 to-slate-950 md:flex flex-col hidden">
+        <div className="p-4 border-b border-slate-800/50">
+          <motion.button 
+            onClick={startNewChat}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-2.5 rounded-xl transition-all text-sm shadow-lg shadow-indigo-500/20">
             <Plus className="h-4 w-4" />
             New Conversation
-          </button>
+          </motion.button>
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {(sessions || []).map((session: ChatSession) => (
-            <button key={session.id}
+            <motion.button 
+              key={session.id}
               onClick={() => { setCurrentSessionId(session.id); setMessages([]); }}
+              whileHover={{ scale: 1.02, x: 4 }}
               className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all ${currentSessionId === session.id
-                ? 'bg-indigo-900/50 text-indigo-300 border border-indigo-700/50'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 shadow-lg shadow-indigo-900/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50 hover:border-slate-700/30 border border-slate-800/30'
               }`}>
               <p className="truncate font-medium">{session.title}</p>
               <p className="text-xs text-slate-500 mt-0.5">
                 {new Date(session.updated_at).toLocaleDateString()}
               </p>
-            </button>
+            </motion.button>
           ))}
           {(!sessions || sessions.length === 0) && (
             <p className="text-slate-600 text-xs text-center py-4">No conversations yet</p>
@@ -143,37 +148,50 @@ export default function ChatPage() {
               <h2 className="text-xl font-bold text-white mb-2">Your AI Learning Mentor</h2>
               <p className="text-slate-400 mb-6">Ask me anything about your learning journey. I know your goals, skills, and roadmap.</p>
               <div className="flex flex-wrap gap-2 justify-center">
-                {QUICK_PROMPTS.map((prompt) => (
-                  <button key={prompt} onClick={() => { setInputText(prompt); }}
-                    className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500 text-slate-300 hover:text-white px-4 py-2 rounded-xl text-sm transition-all">
+                {QUICK_PROMPTS.map((prompt, idx) => (
+                  <motion.button 
+                    key={prompt} 
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { setInputText(prompt); }}
+                    className="bg-slate-900/80 backdrop-blur hover:bg-slate-800 border border-slate-700/50 hover:border-indigo-500/50 text-slate-300 hover:text-indigo-300 px-4 py-2.5 rounded-xl text-sm transition-all">
                     {prompt}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </motion.div>
           )}
 
           {/* Chat messages */}
-          <AnimatePresence>
-            {messages.map((msg) => (
+          <AnimatePresence mode="popLayout">
+            {messages.map((msg, idx) => (
               <motion.div
                 key={msg.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ delay: idx * 0.02, duration: 0.3 }}
                 className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 {/* Avatar */}
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 ${msg.role === 'assistant' ? 'bg-indigo-900' : 'bg-slate-700'}`}>
+                <motion.div 
+                  whileHover={{ scale: 1.1 }}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 ${msg.role === 'assistant' ? 'bg-linear-to-br from-indigo-600 to-indigo-700 shadow-lg shadow-indigo-500/20' : 'bg-slate-700 shadow-lg shadow-slate-500/10'}`}>
                   {msg.role === 'assistant'
-                    ? <Brain className="h-4 w-4 text-indigo-400" />
+                    ? <Brain className="h-4 w-4 text-white" />
                     : <User className="h-4 w-4 text-slate-300" />
                   }
-                </div>
+                </motion.div>
 
                 {/* Bubble */}
-                <div className={`max-w-[75%] rounded-2xl px-5 py-4 ${msg.role === 'user'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-900 border border-slate-800 text-slate-200'
-                }`}>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className={`max-w-xs sm:max-w-md lg:max-w-lg rounded-2xl px-5 py-4 transition-all ${msg.role === 'user'
+                    ? 'bg-linear-to-br from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                    : 'bg-slate-900/80 border border-slate-800/50 hover:border-slate-700/50 text-slate-200 backdrop-blur'
+                  }`}>
                   {msg.role === 'assistant' ? (
                     <div className="prose-ai text-sm leading-relaxed">
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -181,22 +199,32 @@ export default function ChatPage() {
                   ) : (
                     <p className="text-sm">{msg.content}</p>
                   )}
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </AnimatePresence>
 
           {/* Typing indicator */}
           {sendMutation.isPending && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            <motion.div 
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
               className="flex gap-3">
-              <div className="w-8 h-8 rounded-xl bg-indigo-900 flex items-center justify-center">
-                <Brain className="h-4 w-4 text-indigo-400" />
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl px-5 py-4">
+              <motion.div 
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <Brain className="h-4 w-4 text-white" />
+              </motion.div>
+              <div className="bg-slate-900/80 border border-slate-800/50 backdrop-blur rounded-2xl px-5 py-4">
                 <div className="flex gap-1.5 items-center h-5">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    <motion.div 
+                      key={i} 
+                      className="w-2 h-2 bg-indigo-400 rounded-full"
+                      animate={{ y: [-6, 6, -6] }}
+                      transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+                    />
                   ))}
                 </div>
               </div>
@@ -207,22 +235,25 @@ export default function ChatPage() {
         </div>
 
         {/* Input */}
-        <div className="px-4 sm:px-8 py-4 border-t border-slate-800 bg-slate-900">
+        <div className="px-4 sm:px-8 py-4 border-t border-slate-800 bg-linear-to-t from-slate-950 to-slate-900/50">
           <div className="flex gap-3 max-w-3xl mx-auto">
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask your AI mentor anything... (Enter to send)"
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none text-sm"
+              className="flex-1 bg-slate-900/80 backdrop-blur border border-slate-700/50 hover:border-slate-600/50 focus:border-indigo-500/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none resize-none text-sm transition-all"
               rows={1}
               style={{ maxHeight: '120px', overflowY: 'auto' }}
             />
-            <button onClick={handleSend}
+            <motion.button 
+              onClick={handleSend}
               disabled={!inputText.trim() || sendMutation.isPending}
-              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white p-3 rounded-xl transition-all flex items-center justify-center flex-shrink-0">
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-linear-to-br from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:from-slate-700 disabled:to-slate-700 disabled:opacity-40 text-white p-3 rounded-xl transition-all flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20 disabled:shadow-none">
               <Send className="h-5 w-5" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

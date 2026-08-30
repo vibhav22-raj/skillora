@@ -66,6 +66,8 @@ class ProfileResponse(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
     target_role: Optional[str] = None
     experience_level: Optional[str] = None
     education: Optional[str] = None
@@ -161,6 +163,13 @@ class ProjectResponse(BaseModel):
     category: Optional[str] = None
     tags: List[str] = []
     github_template_url: Optional[str] = None
+    domain: Optional[str] = None
+    problem_statement: Optional[str] = None
+    business_value: Optional[str] = None
+    resume_value: Optional[str] = None
+    technologies: List[str] = []
+    architecture: Optional[str] = None
+    resume_bullet: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -272,6 +281,10 @@ class AssessmentResult(BaseModel):
     skill_estimate: float
     feedback: str
     recommendations: List[str] = []
+    strong_areas: List[str] = []
+    weak_areas: List[str] = []
+    next_recommended_action: Optional[str] = None
+    question_review: List[Dict[str, Any]] = []
 
 
 # ─── Chat ──────────────────────────────────────────────────────────────────

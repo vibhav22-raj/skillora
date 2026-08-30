@@ -75,58 +75,34 @@ class GroqProvider(BaseAIProvider):
             from app.ai.demo_provider import DemoProvider
             return await DemoProvider().generate_explanation(context)
 
-    async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
-        profile = context.get("profile", {})
-        skill_gaps = context.get("skill_gaps", [])
-        roadmap = context.get("roadmap")
-
-        # Build a concise system prompt including profile, top gaps, and roadmap state
-        top_gaps = ", ".join([g.get("skill_name") for g in skill_gaps[:3]]) if skill_gaps else "core skills"
-        roadmap_summary = ""
-        if roadmap:
-            rp = roadmap
-            roadmap_summary = f" Roadmap: {rp.get('title', '')}, phases: {rp.get('total_phases')}"
-
-        system = (
-            f"You are an encouraging AI learning mentor. Learner is targeting: {profile.get('target_role', 'Software Engineer')}."
-            f" Top gaps: {top_gaps}.{roadmap_summary} Be concise and actionable. Use markdown. Max 150 words."
-        )
-
-        # Build user content by concatenating recent messages, while extracting explicit constraints
-        last_msg = messages[-1]["content"] if messages else "Hello"
-        # detect simple time constraint like '30 minutes', '1 hour', 'half hour'
-        time_constraint = None
-        import re
-        time_patterns = [r"(\d+)\s*minutes?", r"(\d+)\s*mins?", r"(\d+)\s*hours?", r"half\s*hour", r"30\s*min"]
-        for m in messages[::-1]:
-            text = m.get("content", "")
-            for pat in time_patterns:
-                match = re.search(pat, text, re.IGNORECASE)
-                if match:
-                    time_constraint = match.group(0)
-                    break
-            if time_constraint:
-                break
-
-        # detect struggle mention
-        struggle = None
-        struggle_keywords = ["struggling", "difficult", "hard", "confused", "don't understand", "don't get"]
-        for m in messages[::-1]:
-            text = m.get("content", "").lower()
-            if any(k in text for k in struggle_keywords):
-                struggle = text
-                break
-
-        user_content = last_msg
-        if time_constraint:
-            user_content = f"[time_constraint: {time_constraint}] {user_content}"
-        if struggle:
-            user_content = f"[struggling_about: {struggle}] {user_content}"
-
         try:
-            return await self._generate(system, user_content)
+            from backend.app.ai.base import format_learner_context
+        except ImportError:
+            from app.ai.base import format_learner_context
+
+        system = f"""You are Skillora's AI Mentor: a friendly personal study companion for tech learners.
+
+Learner context:
+{format_learner_context(context)}
+
+Rules:
+- Match the user's language. English -> English, Hindi -> Hindi, Hinglish -> natural Hinglish.
+- Use their goal and gaps when relevant.
+- Be concise, practical, and friendly.
+- Do not fabricate completed courses, scores, certificates, or progress.
+- For concepts, include a simple explanation, analogy, small example, and quick recap.
+- Keep responses under 250 words unless the user asks for detail."""
+        last_msg = "\n".join(
+            f"{'User' if m.get('role') == 'user' else 'Mentor'}: {m.get('content', '')}"
+            for m in messages[-8:]
+        ) or "Hello"
+        try:
+            return await self._generate(system, last_msg)
         except Exception:
-            from app.ai.demo_provider import DemoProvider
+            try:
+                from backend.app.ai.demo_provider import DemoProvider
+            except ImportError:
+                from app.ai.demo_provider import DemoProvider
             return await DemoProvider().chat(messages, context)
 
     async def interpret_feedback(self, feedback: str, context: Dict[str, Any]) -> Dict[str, Any]:

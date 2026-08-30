@@ -1,18 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { assessmentAPI } from '@/lib/api';
-import { ClipboardList, CheckCircle, XCircle, Clock, Star, ChevronRight } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, Clock, ChevronRight, TrendingUp, Code2, Lightbulb, ExternalLink, Play, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Assessment, AssessmentResult } from '@/types';
 
 function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDone: (result: AssessmentResult) => void }) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [userCode, setUserCode] = useState<Record<string, string>>({});
+  const [showHint, setShowHint] = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [currentQ, setCurrentQ] = useState(0);
+
+  const sessionQuestions = useMemo(() => {
+    const shuffled = [...assessment.questions];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, 15);
+  }, [assessment]);
+
+  const queryClient = useQueryClient();
 
   const submitMutation = useMutation({
     mutationFn: () => assessmentAPI.submit(assessment.id, answers),
@@ -22,14 +35,18 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
       setSubmitted(true);
       onDone(r);
       toast.success(`Assessment complete! Score: ${r.score.toFixed(0)}%`);
+      // Invalidate so dashboard/skills/recommendations reflect updated skill level
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['skill-gaps'] });
+      queryClient.invalidateQueries({ queryKey: ['recommendations'] });
     },
     onError: () => toast.error('Could not submit assessment. Please try again.'),
   });
 
-  const question = assessment.questions[currentQ];
-  const totalQ = assessment.questions.length;
-  const progress = (Object.keys(answers).length / totalQ) * 100;
+  const question = sessionQuestions[currentQ] as any;
+  const totalQ = sessionQuestions.length;
   const allAnswered = Object.keys(answers).length === totalQ;
+  const isCodingQuestion = question.type === 'coding' || !!question.starter_code || !!question.test_cases;
 
   if (submitted && result) {
     return (
@@ -46,6 +63,22 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
         </p>
         <p className="text-slate-300 leading-relaxed mb-4">{result.feedback}</p>
         <p className="text-slate-400 text-sm mb-2">{result.correct_answers}/{result.total_questions} correct</p>
+        <div className="grid sm:grid-cols-2 gap-3 text-left mb-4">
+          <div className="bg-slate-800 rounded-xl p-4">
+            <p className="text-emerald-300 font-medium text-sm mb-2">Strong areas</p>
+            <p className="text-slate-400 text-sm">{result.strong_areas?.length ? result.strong_areas.join(', ') : 'Keep practicing to build clear strengths.'}</p>
+          </div>
+          <div className="bg-slate-800 rounded-xl p-4">
+            <p className="text-amber-300 font-medium text-sm mb-2">Weak areas</p>
+            <p className="text-slate-400 text-sm">{result.weak_areas?.length ? result.weak_areas.join(', ') : 'No major weak areas in this attempt.'}</p>
+          </div>
+        </div>
+        {result.next_recommended_action && (
+          <div className="bg-indigo-950/60 border border-indigo-800 rounded-xl p-4 text-left mb-4">
+            <p className="text-indigo-200 font-medium text-sm mb-1">Next recommended action</p>
+            <p className="text-slate-300 text-sm">{result.next_recommended_action}</p>
+          </div>
+        )}
         {result.recommendations.length > 0 && (
           <div className="bg-slate-800 rounded-xl p-4 text-left mt-4">
             <p className="text-slate-300 font-medium text-sm mb-2">Recommendations:</p>
@@ -54,28 +87,117 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
             ))}
           </div>
         )}
+        <div className="bg-gradient-to-r from-indigo-950/50 to-violet-950/50 border border-indigo-800/50 rounded-xl p-4 text-left mt-4">
+          <p className="text-indigo-300 font-medium text-sm mb-2 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Adaptive Learning Update
+          </p>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            Your skill level has been updated based on this assessment. Your personalized recommendations and next best action have been recalculated to match your new skill state.
+          </p>
+          <button onClick={() => window.location.href = '/dashboard'}
+            className="mt-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+            View Updated Dashboard
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Progress */}
+    <div className="max-w-3xl mx-auto">
+      {/* Progress & Type Badge */}
       <div className="mb-6">
-        <div className="flex justify-between text-sm text-slate-400 mb-2">
-          <span>Question {currentQ + 1} of {totalQ}</span>
-          <span>{Object.keys(answers).length} answered</span>
+        <div className="flex justify-between items-center text-sm text-slate-400 mb-2">
+          <span className="flex items-center gap-2 font-medium text-slate-300">
+            <span>Question {currentQ + 1} of {totalQ}</span>
+            {isCodingQuestion ? (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center gap-1">
+                <Code2 className="h-3 w-3" /> Coding / Practical
+              </span>
+            ) : (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800">
+                Multiple Choice
+              </span>
+            )}
+          </span>
+          <span>{Object.keys(answers).length} of {totalQ} answered</span>
         </div>
         <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${((currentQ + 1) / totalQ) * 100}%` }} />
         </div>
       </div>
 
-      {/* Question */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-4">
-        <p className="text-white text-lg font-medium mb-6 leading-relaxed">{question.question}</p>
+      {/* Question Card */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-5">
+        <p className="text-white text-lg font-medium mb-4 leading-relaxed">{question.question}</p>
+
+        {/* If Coding Question: Code Box, Hints, & LeetCode link */}
+        {isCodingQuestion && (
+          <div className="space-y-4 mb-6">
+            {/* Starter Code Editor */}
+            {question.starter_code && (
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5 font-mono px-1">
+                  <span>💻 Solution Code Area</span>
+                  {question.practice_url && (
+                    <a
+                      href={question.practice_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Practice on {question.platform || 'LeetCode'}
+                    </a>
+                  )}
+                </div>
+                <textarea
+                  value={userCode[question.id] !== undefined ? userCode[question.id] : question.starter_code}
+                  onChange={(e) => setUserCode((uc) => ({ ...uc, [question.id]: e.target.value }))}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 resize-y min-h-[140px]"
+                  placeholder="Write or test your code here..."
+                  spellCheck={false}
+                />
+              </div>
+            )}
+
+            {/* Test Case / Sample I/O */}
+            {question.test_cases && question.test_cases.length > 0 && (
+              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 text-xs font-mono space-y-1.5">
+                <p className="text-slate-400 font-sans font-medium text-xs">Sample Test Case:</p>
+                <div className="text-slate-300">
+                  <span className="text-slate-500">Input: </span> {question.test_cases[0].input}
+                </div>
+                <div className="text-emerald-400">
+                  <span className="text-slate-500">Expected Output: </span> {question.test_cases[0].output}
+                </div>
+              </div>
+            )}
+
+            {/* Hint toggle */}
+            {question.hints && question.hints.length > 0 && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowHint((sh) => ({ ...sh, [question.id]: !sh[question.id] }))}
+                  className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
+                >
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  {showHint[question.id] ? 'Hide Hint' : '💡 Show Conceptual Hint'}
+                </button>
+                {showHint[question.id] && (
+                  <p className="mt-2 text-xs text-slate-300 bg-amber-950/30 border border-amber-800/40 rounded-lg p-3 leading-relaxed">
+                    {question.hints.join(' ')}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Options */}
         <div className="space-y-3">
-          {question.options.map((option, optIdx) => (
+          {question.options && question.options.map((option: string, optIdx: number) => (
             <button key={optIdx}
               onClick={() => {
                 setAnswers((a) => ({ ...a, [question.id]: optIdx }));
@@ -118,6 +240,7 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
   );
 }
 
+
 export default function AssessmentPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [done, setDone] = useState<Record<string, AssessmentResult>>({});
@@ -142,7 +265,7 @@ export default function AssessmentPage() {
         </button>
         <h1 className="text-2xl font-bold text-white mb-2">{selectedAssessment.title}</h1>
         <p className="text-slate-400 text-sm mb-6">
-          {selectedAssessment.questions.length} questions · {selectedAssessment.estimated_minutes} min · Pass: {selectedAssessment.passing_score}%
+          {Math.min(selectedAssessment.questions.length, 15)} questions from a {selectedAssessment.questions.length}-question bank · {selectedAssessment.estimated_minutes} min · Pass: {selectedAssessment.passing_score}%
         </p>
         <AssessmentTaker assessment={selectedAssessment} onDone={(result) => setDone((d) => ({ ...d, [selectedId]: result }))} />
       </div>
@@ -170,6 +293,11 @@ export default function AssessmentPage() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
+          {(!assessments || assessments.length === 0) && (
+            <div className="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+              Assessments will appear here once the backend seed data has loaded. Restart the API if this stays empty.
+            </div>
+          )}
           {(assessments || []).map((assessment: any, i: number) => {
             const result = done[assessment.id];
             return (
@@ -191,7 +319,7 @@ export default function AssessmentPage() {
                 <div className="flex items-center gap-4 text-sm text-slate-400 mb-4">
                   <span className="flex items-center gap-1"><ClipboardList className="h-4 w-4" /> {assessment.question_count} questions</span>
                   <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> ~{assessment.estimated_minutes} min</span>
-                  <span className="flex items-center gap-1"><Star className="h-4 w-4" /> Pass: {assessment.passing_score}%</span>
+                  <span className="flex items-center gap-1">⭐ Pass: {assessment.passing_score}%</span>
                 </div>
 
                 <button onClick={() => setSelectedId(assessment.id)}

@@ -6,7 +6,7 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'LearnPath AI – Personalized Learning Path Recommender',
+  title: 'Skillora — AI-Powered Personalized Learning',
   description:
     'AI-powered learning path recommender that creates personalized roadmaps based on your skills, goals, and learning style.',
   keywords: ['learning', 'AI', 'education', 'roadmap', 'skills', 'courses'],

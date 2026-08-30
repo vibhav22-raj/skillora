@@ -16,6 +16,7 @@ interface AuthState {
   logout: () => void;
   setUser: (user: Partial<User> & Pick<User, 'id'>) => void;
   setProfile: (profile: LearnerProfile) => void;
+  setUser: (user: User) => void;
   demoLogin: () => Promise<void>;
 }
 
@@ -62,6 +63,8 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set((state) => ({ user: state.user ? { ...state.user, ...user } : user as User })),
 
       setProfile: (profile) => set({ profile }),
+
+      setUser: (user) => set({ user }),
 
       demoLogin: async () => {
         set({ isLoading: true });

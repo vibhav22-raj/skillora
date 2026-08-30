@@ -134,7 +134,7 @@ class DemoProvider(BaseAIProvider):
         )
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
-        """Generate contextual AI mentor responses with multilingual support."""
+        """Generate contextual, conversational AI mentor responses with multi-turn memory and multilingual support."""
         if not messages:
             return self._welcome_message(context)
 
@@ -147,9 +147,24 @@ class DemoProvider(BaseAIProvider):
         # Detect language
         lang = self._detect_language(last_message)
 
-        # Route to appropriate response based on user intent
-        # Check both English and Hindi/Hinglish keywords
-        if any(w in last_lower for w in ["today", "study today", "do today", "what should i", "aaj", "padhu", "kya padu", "kya seekhu"]):
+        # Look back at conversation history to understand context for follow-up questions
+        previous_text = " ".join([m.get("content", "").lower() for m in messages[:-1][-3:]])
+        combined_context_text = f"{previous_text} {last_lower}"
+
+        # 1. Check for follow-up queries like "ek example de", "aur samjhao", "code dikhao"
+        is_follow_up = any(f in last_lower for f in [
+            "example", "udaharan", "code", "aur", "dikhao", "de", "do", "explain more",
+            "show me", "isko python", "samjhao aur", "example batao"
+        ]) and len(last_lower.split()) <= 6
+
+        # 2. Check for Exam / Test / Interview prep
+        if any(w in last_lower for w in ["exam", "kal exam", "parso exam", "interview", "test hai", "kya padhu exam", "exam preparation"]):
+            response = self._exam_prep_response(last_lower, context, lang=lang)
+        # 3. Follow-up example resolution
+        elif is_follow_up and previous_text:
+            response = self._follow_up_response(previous_text, last_lower, context, lang=lang)
+        # 4. Routine intents
+        elif any(w in last_lower for w in ["today", "study today", "do today", "what should i", "aaj", "padhu", "kya padu", "kya seekhu"]):
             response = self._today_recommendation(context)
         elif any(w in last_lower for w in ["struggling", "difficult", "hard", "don't understand", "confused",
                                             "samajh nahi", "samajh nahin", "samajh aa", "nahi aa raha", "mushkil",
@@ -167,13 +182,15 @@ class DemoProvider(BaseAIProvider):
             response = self._time_limited_response(last_lower, context)
         elif any(w in last_lower for w in ["failed", "fail", "didn't pass", "low score", "fail ho gaya", "nahi hua pass"]):
             response = self._failed_assessment_response(context)
-        elif any(w in last_lower for w in ["hello", "hi", "hey", "start", "namaste", "hii", "helo"]):
+        elif any(w in last_lower for w in ["hello", "hi", "hey", "start", "namaste", "hii", "helo", "kese ho", "kaise ho"]):
             response = self._welcome_message(context)
-        elif any(concept in last_lower for concept in ["recursion", "loop", "array", "list", "dict", "class",
-                                                        "function", "gradient", "neural", "regression", "sql",
-                                                        "join", "api", "docker", "git", "algorithm", "complexity",
-                                                        "overfitting", "bias", "variance", "clustering"]):
-            response = self._concept_explanation(last_lower, context)
+        elif any(concept in combined_context_text for concept in [
+            "recursion", "loop", "array", "list", "dict", "class", "oop", "inheritance", "polymorphism",
+            "encapsulation", "abstraction", "function", "gradient", "neural", "regression", "sql",
+            "join", "api", "docker", "git", "algorithm", "complexity", "overfitting", "bias", "variance",
+            "clustering", "dp", "dynamic programming", "tree", "binary search"
+        ]):
+            response = self._concept_explanation(combined_context_text, context, lang=lang)
         else:
             response = self._general_mentor_response(last_lower, context)
 
@@ -185,22 +202,29 @@ class DemoProvider(BaseAIProvider):
 
         return response
 
+
     def _detect_language(self, text: str) -> str:
-        """Detect if text is Hindi, Hinglish, or English."""
+        """Detect if text is Hindi, Hinglish, or English using word-boundary matching."""
+        import re
         # Hindi Devanagari script detection
         if any('\u0900' <= c <= '\u097f' for c in text):
             return "hindi"
 
-        # Hinglish keywords (romanized Hindi commonly used by Indian learners)
+        # Hinglish keywords — use word-boundary matching to avoid false positives
+        # e.g. 'ek' must NOT match inside 'like', 'make', 'beginner', 'take'
         hinglish_markers = [
             "mujhe", "kaise", "kya", "hai", "nahi", "nahin", "bhai", "yaar",
-            "samajh", "batao", "samjhao", "seekhna", "sikho", "padh", "kar",
-            "matlab", "acha", "theek", "haan", "haan", "please", "please",
-            "bahut", "thoda", "accha", "zyada", "kam", "help", "karo",
-            "ek", "do", "teen", "char", "pehle", "baad", "phir",
+            "samajh", "batao", "samjhao", "seekhna", "sikho", "padhu",
+            "matlab", "acha", "theek", "haan", "bahut", "thoda", "accha",
+            "zyada", "karo", "pehle", "baad", "phir", "aaj", "seekhu",
+            "aata", "padh", "karu", "karun", "banaun",
         ]
         text_lower = text.lower()
-        if sum(1 for w in hinglish_markers if w in text_lower) >= 2:
+        matched = sum(
+            1 for w in hinglish_markers
+            if re.search(r'\b' + re.escape(w) + r'\b', text_lower)
+        )
+        if matched >= 2:
             return "hinglish"
 
         return "english"
@@ -295,13 +319,19 @@ class DemoProvider(BaseAIProvider):
         skill_gaps = context.get("skill_gaps", [])
         weekly_hours = profile.get("weekly_hours", 10)
         daily_hours = weekly_hours / 5
+        roadmap = context.get("roadmap") or {}
+        milestone = context.get("current_milestone") or {}
+        milestone_title = milestone.get("title") if isinstance(milestone, dict) else None
         
         top_gap = skill_gaps[0]["skill_name"] if skill_gaps else "core skills"
+        phase = roadmap.get("current_phase") or "your current roadmap phase"
         
         return (
             f"🎯 **Today's Learning Plan** ({daily_hours:.1f} hours)\n\n"
-            f"**Priority: {top_gap}** (your highest-impact gap)\n\n"
-            f"Here's your focused plan for today:\n\n"
+            f"**Priority: {top_gap}** (your highest-impact gap)\n"
+            f"**Roadmap phase:** {phase}"
+            + (f"\n**Milestone:** {milestone_title}" if milestone_title else "")
+            + "\n\nHere's your focused plan for today:\n\n"
             f"1. 📺 **30 min** — Watch the next lesson in your {top_gap} module\n"
             f"2. ✏️ **15 min** — Complete the practice exercises\n"
             f"3. 🔨 **20 min** — Apply to your current project\n\n"
@@ -413,10 +443,15 @@ class DemoProvider(BaseAIProvider):
     def _roadmap_response(self, context: Dict) -> str:
         profile = context.get("profile", {})
         target_role = profile.get("target_role", "your goal")
+        roadmap = context.get("roadmap") or {}
+        title = roadmap.get("title") or f"{target_role} roadmap"
+        weeks = roadmap.get("total_weeks") or "several"
+        phase = roadmap.get("current_phase") or "the first incomplete phase"
         
         return (
             f"🗺️ **Your Learning Roadmap**\n\n"
-            f"Your personalized roadmap to **{target_role}** is built on 3 principles:\n\n"
+            f"You currently have **{title}** ({weeks} weeks). Next focus: **{phase}**.\n\n"
+            f"Your personalized path to **{target_role}** is built on 3 principles:\n\n"
             f"**1. Prerequisites First** 🔗\n"
             f"Every topic is ordered so you always have the foundation needed for the next step.\n\n"
             f"**2. Skill Gap Priority** 🎯\n"
@@ -445,9 +480,16 @@ class DemoProvider(BaseAIProvider):
         
         tasks_str = "\n".join(f"  {i+1}. {t}" for i, t in enumerate(tasks))
         
+        skill_gaps = context.get("skill_gaps") or []
+        top_gap = skill_gaps[0]["skill_name"] if skill_gaps else "your next roadmap skill"
+        roadmap = context.get("roadmap") or {}
+        phase = roadmap.get("current_phase")
+        
         return (
             f"⏰ **{time_str} Learning Sprint**\n\n"
-            f"Here's a focused plan for your available time:\n\n"
+            f"Focus this session on **{top_gap}**"
+            + (f" in **{phase}**." if phase else ".")
+            + "\n\nHere's a focused plan for your available time:\n\n"
             f"{tasks_str}\n\n"
             f"💡 *Short sessions can be just as effective — consistency beats duration.*\n\n"
             f"Even 30 minutes a day adds up to 15 hours a month. That's significant progress!\n\n"
@@ -474,73 +516,242 @@ class DemoProvider(BaseAIProvider):
             f"Which specific concepts felt most confusing? I can recommend targeted resources."
         )
 
-    def _concept_explanation(self, message: str, context: Dict) -> str:
+    def _exam_prep_response(self, message: str, context: Dict, lang: str = "english") -> str:
+        """Personalized study plan for exams and tests."""
+        profile = context.get("profile", {})
+        target_role = profile.get("target_role", "Software Engineer")
+        skill_gaps = context.get("skill_gaps", [])
+        top_gaps = [g["skill_name"] for g in skill_gaps[:3]] if skill_gaps else ["Core Fundamentals", "Problem Solving"]
+        roadmap = context.get("roadmap") or {}
+        current_phase = roadmap.get("current_phase") or "Current Phase"
+
+        if lang in ("hinglish", "hindi"):
+            return (
+                f"🚨 **Tension mat le bhai! 😄 Smart revision plan banate hain.**\n\n"
+                f"Target Role: **{target_role}** | Current Focus: **{current_phase}**\n\n"
+                f"Kal/Upcoming exam ke liye yeh 3-Step Strategy follow karo:\n\n"
+                f"⏱️ **Block 1 (First 2 Hours) — High-Yield Core Concepts:**\n"
+                f"• **{top_gaps[0] if len(top_gaps) > 0 else 'Core Concept'}**: Formulas, definitions, aur key syntax revise karo.\n"
+                f"• **{top_gaps[1] if len(top_gaps) > 1 else 'Problem Solving'}**: Most repeated questions aur standard patterns dekho.\n\n"
+                f"💻 **Block 2 (1.5 Hours) — Hands-On / Code Practice:**\n"
+                f"• 3-4 standard code questions khud likh ke dry-run karo.\n"
+                f"• Edge cases (e.g. empty input, base cases) check karo.\n\n"
+                f"🧠 **Block 3 (Final 30 Mins) — Rapid Cheat Sheet Review:**\n"
+                f"• Summary notes aur quick formulas dekho.\n"
+                f"• Der raat tak mat jaagna — 7 hours sleep zaroori hai memory consolidation ke liye! 💤\n\n"
+                f"Kisi specific topic ka quick recap ya code example chahiye toh batao, abhi samjhaata hoon!"
+            )
+
+        return (
+            f"🎯 **Targeted Exam / Interview Prep Strategy**\n\n"
+            f"Target: **{target_role}** | Key Focus: **{current_phase}**\n\n"
+            f"Here is your high-efficiency revision breakdown:\n\n"
+            f"**Phase 1: High-Weightage Core Revision (45%)**\n"
+            f"- Prioritize your critical gaps: **{', '.join(top_gaps)}**.\n"
+            f"- Review fundamental definitions, invariants, and syntax.\n\n"
+            f"**Phase 2: Pattern Practice & Dry Runs (40%)**\n"
+            f"- Solve 2-3 canonical scenario questions without looking at solutions.\n"
+            f"- Practice calculating Big-O time and space complexity.\n\n"
+            f"**Phase 3: Formula & Cheat Sheet Recap (15%)**\n"
+            f"- Quick scan of key APIs, parameters, and edge cases.\n"
+            f"- Rest well before the exam to keep your problem-solving sharp!\n\n"
+            f"Which topic would you like a fast 2-minute summary on right now?"
+        )
+
+    def _follow_up_response(self, previous_text: str, current_message: str, context: Dict, lang: str = "english") -> str:
+        """Handle conversational follow-ups like 'ek example de', 'code dikhao', 'aur samjhao'."""
+        is_hinglish = lang in ("hinglish", "hindi")
+
+        # Detect what concept they were discussing
+        if any(w in previous_text for w in ["inheritance", "inherit"]):
+            if is_hinglish:
+                return (
+                    "**Inheritance ka Simple Code Example:** 👨‍👦\n\n"
+                    "```python\n# Parent Class (Super Class)\nclass Car:\n    def __init__(self, brand):\n        self.brand = brand\n    \n    def drive(self):\n        return f'{self.brand} car chal rahi hai! 🚗'\n\n"
+                    "# Child Class (Sub Class) — Inherits from Car\nclass ElectricCar(Car):\n    def __init__(self, brand, battery_kwh):\n        super().__init__(brand)  # Parent constructor call\n        self.battery_kwh = battery_kwh\n    \n    def charge(self):\n        return f'{self.brand} charging... 🔋'\n\n"
+                    "# Usage\ntesla = ElectricCar('Tesla', 75)\nprint(tesla.drive())   # Output: Tesla car chal rahi hai! (Parent ka method)\nprint(tesla.charge())  # Output: Tesla charging... (Child ka apna method)\n```\n\n"
+                    "**Samajh aaya?** `ElectricCar` ne `Car` ki saari properties inherit kar li bina dubara code likhe! 🎉"
+                )
+            return (
+                "**Inheritance Code Example:** 👨‍👦\n\n"
+                "```python\nclass Vehicle:\n    def __init__(self, name):\n        self.name = name\n    def move(self):\n        return f'{self.name} is moving.'\n\n"
+                "class ElectricCar(Vehicle):\n    def __init__(self, name, battery_capacity):\n        super().__init__(name)\n        self.battery_capacity = battery_capacity\n\n"
+                "tesla = ElectricCar('Tesla Model 3', '75kWh')\nprint(tesla.move())  # Inherited from Vehicle\n```\n\n"
+                "`ElectricCar` reuses `Vehicle` functionality without code duplication."
+            )
+
+        if any(w in previous_text for w in ["recursion", "factorial"]):
+            if is_hinglish:
+                return (
+                    "**Recursion ka Step-by-Step Execution:** 🔁\n\n"
+                    "Dekh bhai `factorial(4)` kaise execute hota hai:\n\n"
+                    "```python\ndef fact(n):\n    if n <= 1: return 1   # Base Case (Ruk jao)\n    return n * fact(n - 1) # Recursive Call\n```\n\n"
+                    "**Call Stack:**\n"
+                    "1. `fact(4)` = 4 * `fact(3)`\n"
+                    "2. `fact(3)` = 3 * `fact(2)`\n"
+                    "3. `fact(2)` = 2 * `fact(1)`\n"
+                    "4. `fact(1)` returns 1 (Base case reached!)\n"
+                    "→ Wapas unwinding: 2*1=2 → 3*2=6 → 4*6=24!\n\n"
+                    "Result = **24** ✅"
+                )
+            return (
+                "**Step-by-Step Recursion Trace:** 🔁\n\n"
+                "```python\ndef countdown(n):\n    if n == 0:        # Base case\n        print('Blast off! 🚀')\n        return\n    print(n)\n    countdown(n - 1)  # Recursive step\n\ncountdown(3) # Prints: 3, 2, 1, Blast off!\n```"
+            )
+
+        if any(w in previous_text for w in ["oop", "class", "object"]):
+            if is_hinglish:
+                return (
+                    "**OOP (Class & Object) ka Real-Life Example:** 🏗️\n\n"
+                    "• **Class = BluePrint (Naksha):** Socho 'House Blueprint'\n"
+                    "• **Object = Actual Ghar:** Blueprint se bana hua actual physical ghar!\n\n"
+                    "```python\nclass Student:\n    def __init__(self, name, roll_no):\n        self.name = name\n        self.roll_no = roll_no\n    \n    def study(self):\n        return f'{self.name} is studying for AI/ML!'\n\n# Objects (Instances)\nrahul = Student('Rahul', 101)\npriya = Student('Priya', 102)\n\nprint(rahul.study())\n```"
+                )
+            return (
+                "**Class vs Object Example:** 🏗️\n\n"
+                "```python\nclass BankAccount:\n    def __init__(self, owner, balance=0):\n        self.owner = owner\n        self.balance = balance\n    def deposit(self, amount):\n        self.balance += amount\n        return f'Deposited ${amount}. Balance: ${self.balance}'\n\nacc = BankAccount('Alex', 100)\nprint(acc.deposit(50)) # Balance: $150\n```"
+            )
+
+        # Fallback to general concept explanation
+        return self._concept_explanation(previous_text, context, lang=lang)
+
+    def _concept_explanation(self, message: str, context: Dict, lang: str = "english") -> str:
         """Explain programming/ML concepts in a simple, structured way."""
         profile = context.get("profile", {})
         target_role = profile.get("target_role", "Software Engineer")
+        is_hinglish = lang in ("hinglish", "hindi")
 
-        concept_map = {
+        concept_map_en = {
             "recursion": (
-                "**Recursion** — Simple se samjhte hain! 🧠\n\n"
-                "**Simple idea:** A function that calls itself.\n\n"
-                "**Real-world analogy:** Socho tum ek room ke andar ho, aur us room mein ek aur chhota room hai, "
-                "aur us mein bhi ek aur... jab tak ek empty room na mile. Recursion wahi karta hai — tab tak "
-                "problem ko chhota karta hai jab tak solve na ho jaye.\n\n"
-                "**Code example:**\n```python\ndef factorial(n):\n    if n == 0:  # base case — STOP!\n        return 1\n"
-                "    return n * factorial(n - 1)  # call itself\n\nfactorial(5)  # = 5 × 4 × 3 × 2 × 1 = 120\n```\n\n"
-                "**Key rules:**\n1. Always have a **base case** (otherwise infinite loop!)\n"
-                "2. Each call should bring you **closer to the base case**\n\n"
-                "**Quick recap:** Function calls itself → smaller problem → base case → done! 🎉"
+                "**Recursion** — A function that calls itself! 🧠\n\n"
+                "**Simple idea:** Break a big problem into smaller identical subproblems until you hit the simplest base case.\n\n"
+                "**Real-world analogy:** Looking up a word in a dictionary — if the definition uses another word you don't know, you recursively look that word up until you reach known words.\n\n"
+                "**Code example:**\n```python\ndef factorial(n):\n    if n == 0:  # base case — STOP!\n        return 1\n    return n * factorial(n - 1)  # call itself\n\nfactorial(5)  # 5 × 4 × 3 × 2 × 1 = 120\n```\n\n"
+                "**Two Golden Rules:**\n1. Always have a **base case** (prevents Stack Overflow!)\n2. Each call must move **closer to the base case**."
+            ),
+            "inheritance": (
+                "**Inheritance in OOP** — Code reuse and hierarchy! 🧬\n\n"
+                "**Simple idea:** A child class automatically inherits attributes and methods from a parent class.\n\n"
+                "**Real-world analogy:** You inherit traits (like eye color) from your parents, but you also have your own unique skills.\n\n"
+                "**Code example:**\n```python\nclass Animal:\n    def speak(self):\n        return 'Some sound'\n\nclass Dog(Animal):\n    def speak(self):  # Method overriding\n        return 'Woof! 🐶'\n\nd = Dog()\nprint(d.speak()) # Output: Woof!\n```\n\n"
+                "**Why use it:** Eliminates boilerplate, models real-world taxonomies, and enables polymorphism."
+            ),
+            "oop": (
+                "**Object-Oriented Programming (OOP)** — Modeling code around real-world entities! 📦\n\n"
+                "**4 Core Pillars of OOP:**\n"
+                "1. **Encapsulation:** Bundling data (attributes) and methods together inside a class.\n"
+                "2. **Abstraction:** Hiding complex internal implementation and exposing only clean interfaces.\n"
+                "3. **Inheritance:** Deriving new classes from existing ones (`ChildClass(ParentClass)`).\n"
+                "4. **Polymorphism:** Same method name behaving differently across different classes.\n\n"
+                "**Why it matters:** Essential for building production-grade ML pipelines and modular software."
+            ),
+            "polymorphism": (
+                "**Polymorphism** — Many forms, one interface! 🎭\n\n"
+                "**Simple idea:** The ability of different objects to respond to the same function/method call in their own specific way.\n\n"
+                "**Example:** In Python, `len([1,2,3])` and `len('hello')` both work on different data structures using the same interface."
             ),
             "overfitting": (
-                "**Overfitting** — Let's break it down! 🎯\n\n"
-                "**Simple idea:** Your model memorized the training data instead of learning patterns.\n\n"
-                "**Real-world analogy:** Imagine a student who memorizes every past exam question word-for-word. "
-                "They score 100% on practice papers but fail the real exam because the questions are different.\n\n"
-                "**Symptoms:**\n- Training accuracy: 99% ✅\n- Test accuracy: 60% ❌\n\n"
-                "**Fixes:**\n1. Get more training data\n2. Use regularization (L1/L2)\n3. Dropout (for neural nets)\n"
-                "4. Reduce model complexity\n5. Cross-validation\n\n"
-                "**Bias-Variance tradeoff:** Overfitting = low bias, high variance. We want the sweet spot!"
+                "**Overfitting** — When your model memorizes instead of learning! 🎯\n\n"
+                "**Simple idea:** The model learns the training data and its random noise too well, failing on unseen test data.\n\n"
+                "**Real-world analogy:** A student who memorizes past exam answers word-for-word, but fails when numbers are changed.\n\n"
+                "**Symptoms:** Training accuracy: 99% ✅ | Test accuracy: 60% ❌\n\n"
+                "**How to fix:**\n1. Regularization (L1/L2)\n2. Add more training data\n3. Dropout layers (Neural Nets)\n4. Reduce model complexity\n5. K-Fold Cross-Validation."
             ),
             "gradient": (
-                "**Gradient Descent** — Samjho ek pahaad se utarne ki tarah! ⛰️\n\n"
-                "**Simple idea:** An algorithm to minimize a loss function by moving in the steepest downhill direction.\n\n"
-                "**Analogy:** Andhere mein pahaad se uthna hai. Har step pe feel karo — kaunsi taraf neeche hai? "
-                "Us direction mein ek chhota step lo. Repeat karo jab tak valley mein na pahuncho.\n\n"
-                "**Math:**\n```\nw = w - learning_rate × gradient_of_loss\n```\n\n"
-                "**Types:**\n- Batch GD: Uses all data (slow but accurate)\n"
-                "- SGD: Uses 1 sample (fast but noisy)\n"
-                "- Mini-batch GD: Uses small batches (best of both) ✅\n\n"
-                "**Learning rate matters:** Too high → overshoots. Too low → takes forever."
+                "**Gradient Descent** — The engine of Machine Learning optimization! ⛰️\n\n"
+                "**Simple idea:** An iterative algorithm that minimizes a loss function by taking steps in the direction of steepest downhill slope.\n\n"
+                "**Formula:** `w = w - learning_rate * d(Loss)/dw`\n\n"
+                "**Key types:**\n- **Batch GD:** Full dataset (slow, accurate)\n- **SGD:** 1 sample per step (fast, noisy)\n- **Mini-batch GD:** 32–256 batch size (industry standard ✅)."
             ),
             "sql": (
-                "**SQL Joins** — The most important SQL concept! 🔗\n\n"
-                "```\nusers table:      orders table:\nid | name         id | user_id | item\n1  | Alice        1  | 1       | Phone\n2  | Bob          2  | 1       | Laptop\n3  | Charlie      3  | 2       | Book\n```\n\n"
-                "**INNER JOIN** — Only matching rows:\n"
-                "```sql\nSELECT users.name, orders.item\nFROM users INNER JOIN orders ON users.id = orders.user_id;\n-- Result: Alice→Phone, Alice→Laptop, Bob→Book\n```\n\n"
-                "**LEFT JOIN** — All left table rows + matching right:\n"
-                "```sql\n-- Charlie appears even with no orders (NULL)\n```\n\n"
-                "**Memory trick:** INNER = intersection, LEFT = keep all left, RIGHT = keep all right, FULL = keep everything"
+                "**SQL Joins** — Merging tables relational data! 🔗\n\n"
+                "• **INNER JOIN:** Returns records with matching values in both tables.\n"
+                "• **LEFT JOIN:** Returns all records from left table + matched records from right.\n"
+                "• **RIGHT JOIN:** Returns all records from right table + matched records from left.\n"
+                "• **FULL JOIN:** Returns all records when there is a match in either table.\n\n"
+                "```sql\nSELECT users.name, orders.amount\nFROM users\nINNER JOIN orders ON users.id = orders.user_id;\n```"
             ),
         }
 
-        # Find matching concept
+        concept_map_hinglish = {
+            "recursion": (
+                "**Recursion** — Ekdum simple se samjhte hain! 🧠\n\n"
+                "**Concept:** Ek function jo khud ko hi call karta hai jab tak chhota case na mil jaye.\n\n"
+                "**Real-life Analogy:** Socho tum line mein khade ho aur aage waale se puchte ho 'mai kitne number pe hoon?'. Wo aage waale se puchta hai, aur line ke first bande pe pahunch ke baat clear hoti hai!\n\n"
+                "```python\ndef fact(n):\n    if n <= 1: return 1       # Base Case (Rukne ka rule)\n    return n * fact(n - 1)     # Recursive Step\n\nprint(fact(4)) # 4 * 3 * 2 * 1 = 24\n```\n\n"
+                "💡 **Yaad rakhna:** Base case nahi diya toh `RecursionError: maximum recursion depth exceeded` (Stack overflow) ho jaayega!"
+            ),
+            "inheritance": (
+                "**Inheritance (OOP)** — Bilkul simple hai bhai! 🧬\n\n"
+                "**Concept:** Jab ek Child Class apne Parent Class ki saari properties aur methods use kar sakti hai.\n\n"
+                "**Real-life Analogy:** Jaise tumhe apne parents se height ya eye color milta hai, waise hi child class ko parent class ka code milta hai bina dobara likhe!\n\n"
+                "```python\nclass Vehicle:\n    def start(self):\n        return 'Engine started! 🚗'\n\nclass Bike(Vehicle):  # Bike inherits from Vehicle\n    def wheelie(self):\n        return 'Doing a wheelie! 🏍️'\n\nb = Bike()\nprint(b.start())   # Parent method automatically available!\nprint(b.wheelie()) # Child ka apna feature\n```\n\n"
+                "Code reusability badhti hai aur time bachta hai!"
+            ),
+            "oop": (
+                "**OOP (Object Oriented Programming)** — Code ko Real World jaise organize karna! 📦\n\n"
+                "Dekh bhai, OOP ke 4 Main Pillars hote hain:\n\n"
+                "1. **Classes & Objects:** Class = Blueprint (e.g. Car design), Object = Real Car (e.g. tumhari Swift).\n"
+                "2. **Encapsulation:** Data aur functions ko ek capsule (class) ke andar band rakhna.\n"
+                "3. **Inheritance:** Parent class se code reuse karna (`Child(Parent)`).\n"
+                "4. **Polymorphism:** Ek hi naam ka method alag alag objects me alag behave kare.\n\n"
+                "Kisi ek pillar ka deeper example chahiye toh batao!"
+            ),
+            "polymorphism": (
+                "**Polymorphism** — 'Poly' = Many, 'Morph' = Forms! 🎭\n\n"
+                "**Concept:** Ek hi method naam alag alag classes ke liye alag tareeke se kaam kare.\n\n"
+                "**Example:**\n"
+                "• `Dog.speak()` → 'Woof!'\n"
+                "• `Cat.speak()` → 'Meow!'\n"
+                "Dono ka method name `speak()` hai lekin output alag hai. Yahi polymorphism hai!"
+            ),
+            "overfitting": (
+                "**Overfitting** — Samjho ek student ki tarah! 🎯\n\n"
+                "**Problem:** Model ne training data ko patterns samajhne ki jagah 'ratta' (memorize) maar liya.\n\n"
+                "**Analogy:** Ek student jo past question paper ke exact answers yaad karta hai. Exam me naya question aaya toh blank ho gaya! 😅\n\n"
+                "**Symptoms:** Training Accuracy: 99% ✅, Testing Accuracy: 60% ❌\n\n"
+                "**Solutions:**\n1. Regularization (L1/L2) use karo\n2. Zyada training data lao\n3. Dropout layers lagao (Neural networks me)\n4. Simple model use karo."
+            ),
+            "gradient": (
+                "**Gradient Descent** — Samjho pahaad se neeche utarna! ⛰️\n\n"
+                "**Concept:** Loss function (error) ko minimize karne ke liye weights ko step-by-step update karna.\n\n"
+                "**Analogy:** Andhere mein pahaad se utarna hai. Har step pe pair se feel karo ki neeche ki dhalan kahan hai, aur us taraf chhota step lo.\n\n"
+                "**Formula:** `weight = weight - (learning_rate * gradient)`\n\n"
+                "Learning rate zyada bada mat rakhna warna valley paar ho jaayegi (overshoot)!"
+            ),
+            "sql": (
+                "**SQL Joins** — Tables ko aapas mein jodne ka formula! 🔗\n\n"
+                "• **INNER JOIN:** Sirf wahi rows jo dono table me common match hoti hain.\n"
+                "• **LEFT JOIN:** Left table ke saare records + Right table ke matching records.\n"
+                "• **RIGHT JOIN:** Right table ke saare records + Left ke matching.\n"
+                "• **FULL JOIN:** Dono tables ka poora union.\n\n"
+                "Venn diagram jaisa socho — INNER = Center Intersection circle! 🎯"
+            ),
+        }
+
+        concept_map = concept_map_hinglish if is_hinglish else concept_map_en
+
         for key, explanation in concept_map.items():
             if key in message:
                 return explanation
 
-        # Generic concept help
+        # Fallback friendly explanation
+        if is_hinglish:
+            return (
+                f"Bhai yeh topic **{target_role}** ke liye kaafi important hai! 🚀\n\n"
+                f"Mai isko 3 simple steps me explain karta hoon:\n"
+                f"1. **Core Concept:** Iska main purpose kya hai?\n"
+                f"2. **Real Example:** Real life mein kaise use hota hai?\n"
+                f"3. **Code Demo:** Python snippet.\n\n"
+                f"Aap specific question pucho (jaise *'OOP samjhao'*, *'Inheritance ka example de'*, *'Overfitting kya hai'*), mai turant step-by-step bata dunga!"
+            )
+
         return (
-            f"Great question! Let me explain this concept step by step. 🧠\n\n"
-            f"**My approach for explaining any concept:**\n\n"
-            f"1. **Simple summary** — What is it in one sentence?\n"
-            f"2. **Real-world analogy** — How does it relate to everyday life?\n"
-            f"3. **Example** — Show it in action\n"
-            f"4. **Code/formula** — The technical representation\n"
-            f"5. **Common pitfalls** — What to watch out for\n\n"
-            f"Could you be more specific about which concept you want explained? "
-            f"I can give you a detailed breakdown of any topic in your {target_role} roadmap!\n\n"
-            f"For example: *\"Explain recursion\"*, *\"What is overfitting?\"*, *\"How does gradient descent work?\"*"
+            f"Great question! Let me break this down step-by-step for your **{target_role}** roadmap. 🧠\n\n"
+            f"1. **Summary:** What it is in simple terms\n"
+            f"2. **Real-world analogy:** How it relates to everyday life\n"
+            f"3. **Code implementation:** Practical snippet\n\n"
+            f"Feel free to ask specific questions like *'Explain OOP'*, *'Give an inheritance example'*, or *'What is overfitting?'*!"
         )
 
     def _general_mentor_response(self, message: str, context: Dict) -> str:
@@ -553,12 +764,11 @@ class DemoProvider(BaseAIProvider):
             f"I'm here to help you on your journey to become a **{target_role}**! 🚀\n\n"
             f"Based on your profile, your current focus should be **{top_gap}**.\n\n"
             f"Here's what I can help you with — just ask naturally:\n\n"
-            f"📚 **Concept explanations** — *\"Explain recursion\"* / *\"Recursion samjhao\"*\n"
-            f"🎯 **Daily plan** — *\"What should I study today?\"* / *\"Aaj kya padu?\"*\n"
+            f"📚 **Concept explanations** — *\"Explain recursion\"* / *\"bhai inheritance samjhao\"*\n"
+            f"💡 **Code & Examples** — *\"ek example de\"* / *\"show me a code snippet\"*\n"
+            f"🎯 **Daily & Exam plans** — *\"What should I study today?\"* / *\"kal exam hai kya padhu\"*\n"
             f"🗺️ **Roadmap help** — *\"What's my next step?\"* / *\"Aage kya karun?\"*\n"
-            f"💡 **I'm stuck** — *\"I'm struggling with SQL joins\"* / *\"SQL samajh nahi aa raha\"*\n"
-            f"⏰ **Short sessions** — *\"I only have 30 minutes\"* / *\"Sirf thoda time hai\"*\n"
-            f"🔨 **Projects** — *\"What project should I build?\"*\n"
-            f"📊 **Interview prep** — *\"Help me prepare for ML interviews\"*\n\n"
+            f"🔨 **Projects & Prep** — *\"What project should I build for my resume?\"*\n\n"
             f"Ask me anything — in English, Hindi, or Hinglish! 😊"
         )
+

@@ -5,10 +5,16 @@ from sqlalchemy import select
 import uuid
 from datetime import datetime
 
-from app.database.base import get_db
-from app.models import User, Assessment, AssessmentAttempt
-from app.schemas import ApiResponse, AssessmentSubmit
-from app.services.auth_service import get_current_user
+try:
+    from backend.app.database.base import get_db
+    from backend.app.models import User, Assessment, AssessmentAttempt, UserSkill
+    from backend.app.schemas import ApiResponse, AssessmentSubmit
+    from backend.app.services.auth_service import get_current_user
+except ImportError:
+    from app.database.base import get_db
+    from app.models import User, Assessment, AssessmentAttempt, UserSkill
+    from app.schemas import ApiResponse, AssessmentSubmit
+    from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/api/assessments", tags=["assessments"])
 
@@ -112,15 +118,39 @@ async def submit_assessment(
     if not assessment:
         return ApiResponse(success=False, message="Assessment not found")
 
-    # Score the submission
-    questions = assessment.questions
+    # Score only the questions that were delivered/answered. This supports
+    # randomized shorter sessions from a larger question bank.
+    answered_ids = set(submission.answers.keys())
+    questions = [q for q in assessment.questions if q.get("id") in answered_ids]
+    if not questions:
+        questions = assessment.questions
     total = len(questions)
     correct = 0
+    strong_areas = set()
+    weak_areas = set()
+    question_review = []
 
     for question in questions:
         q_id = question["id"]
-        if str(submission.answers.get(q_id)) == str(question.get("correct_answer")):
+        selected = submission.answers.get(q_id)
+        is_correct = str(selected) == str(question.get("correct_answer"))
+        # Use skill_name as topic fallback — NEVER use difficulty as a topic label
+        topic = question.get("topic") or question.get("type") or assessment.skill_name or "Core concepts"
+        if is_correct:
             correct += 1
+            strong_areas.add(str(topic))
+        else:
+            weak_areas.add(str(topic))
+        question_review.append({
+            "id": q_id,
+            "question": question.get("question"),
+            "selected_answer": selected,
+            "correct_answer": question.get("correct_answer"),
+            "is_correct": is_correct,
+            "explanation": question.get("explanation"),
+            "topic": topic,
+            "difficulty": question.get("difficulty"),
+        })
 
     score = (correct / total) * 100 if total > 0 else 0
     passed = score >= assessment.passing_score
@@ -140,6 +170,18 @@ async def submit_assessment(
     if not passed:
         recommendations.append(f"Review {assessment.skill_name} fundamentals before retaking")
         recommendations.append("Check the prerequisite resources in your roadmap")
+    if weak_areas:
+        # Filter out any accidentally included difficulty strings
+        valid_weak = [w for w in sorted(weak_areas)[:3] if w.lower() not in ("easy", "medium", "hard", "beginner", "advanced")]
+        if valid_weak:
+            recommendations.append(f"Focus revision on: {', '.join(valid_weak)}")
+
+    # Generate a clean, specific next_action
+    if not passed:
+        next_action = f"Review {assessment.skill_name} fundamentals and retake the assessment to improve your skill level."
+    else:
+        next_action = f"Great work on {assessment.skill_name}! Move to the next milestone in your roadmap."
+
 
     # Save attempt
     attempt = AssessmentAttempt(
@@ -154,6 +196,19 @@ async def submit_assessment(
         feedback=feedback,
     )
     db.add(attempt)
+
+    if assessment.skill_name:
+        skill_result = await db.execute(
+            select(UserSkill).where(
+                UserSkill.user_id == current_user.id,
+                UserSkill.skill_name == assessment.skill_name,
+            )
+        )
+        user_skill = skill_result.scalar_one_or_none()
+        if user_skill:
+            user_skill.current_level = max(user_skill.current_level, skill_estimate)
+            user_skill.last_assessed = datetime.utcnow()
+
     await db.commit()
 
     return ApiResponse(
@@ -166,6 +221,10 @@ async def submit_assessment(
             "skill_estimate": skill_estimate,
             "feedback": feedback,
             "recommendations": recommendations,
+            "strong_areas": sorted(strong_areas),
+            "weak_areas": sorted(weak_areas),
+            "next_recommended_action": next_action,
+            "question_review": question_review,
         },
         message="Assessment completed!",
     )

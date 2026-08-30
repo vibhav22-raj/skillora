@@ -9,10 +9,14 @@ from contextlib import asynccontextmanager
 import time
 import logging
 
-from app.config.settings import settings
-from app.database.base import create_tables
-from app.api import skills
-from app.api import assessment, auth, chat, dashboard, learning_path, profile, progress, projects, recommendations, resources
+try:
+    from backend.app.config.settings import settings
+    from backend.app.database.base import create_tables
+    from backend.app.api import skills, assessment, auth, chat, dashboard, learning_path, profile, progress, projects, recommendations, resources
+except ImportError:
+    from app.config.settings import settings
+    from app.database.base import create_tables
+    from app.api import skills, assessment, auth, chat, dashboard, learning_path, profile, progress, projects, recommendations, resources
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,9 +35,11 @@ async def lifespan(app: FastAPI):
     await create_tables()
     logger.info("✅ Database tables created")
 
-    # Run seed data
     try:
-        from app.database.seed_data import seed_database
+        try:
+            from backend.app.database.seed_data import seed_database
+        except ImportError:
+            from app.database.seed_data import seed_database
         await seed_database()
         logger.info("✅ Seed data loaded")
     except Exception as e:
