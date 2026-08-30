@@ -11,8 +11,8 @@ import logging
 
 from backend.app.config.settings import settings
 from backend.app.database.base import create_tables
-from backend.app.api import skills
-from backend.app.api import assessment, auth, chat, dashboard, learning_path, profile, progress, projects, recommendations, resources
+from backend.app.api import skills, assessment, auth, chat, dashboard, learning_path, profile, progress, projects, recommendations, resources
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

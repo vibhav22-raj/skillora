@@ -4,12 +4,14 @@ import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { assessmentAPI } from '@/lib/api';
-import { ClipboardList, CheckCircle, XCircle, Clock, ChevronRight, TrendingUp } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, Clock, ChevronRight, TrendingUp, Code2, Lightbulb, ExternalLink, Play, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Assessment, AssessmentResult } from '@/types';
 
 function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDone: (result: AssessmentResult) => void }) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [userCode, setUserCode] = useState<Record<string, string>>({});
+  const [showHint, setShowHint] = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [currentQ, setCurrentQ] = useState(0);
@@ -41,9 +43,10 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
     onError: () => toast.error('Could not submit assessment. Please try again.'),
   });
 
-  const question = sessionQuestions[currentQ];
+  const question = sessionQuestions[currentQ] as any;
   const totalQ = sessionQuestions.length;
   const allAnswered = Object.keys(answers).length === totalQ;
+  const isCodingQuestion = question.type === 'coding' || !!question.starter_code || !!question.test_cases;
 
   if (submitted && result) {
     return (
@@ -102,23 +105,99 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Progress */}
+    <div className="max-w-3xl mx-auto">
+      {/* Progress & Type Badge */}
       <div className="mb-6">
-        <div className="flex justify-between text-sm text-slate-400 mb-2">
-          <span>Question {currentQ + 1} of {totalQ}</span>
-          <span>{Object.keys(answers).length} answered</span>
+        <div className="flex justify-between items-center text-sm text-slate-400 mb-2">
+          <span className="flex items-center gap-2 font-medium text-slate-300">
+            <span>Question {currentQ + 1} of {totalQ}</span>
+            {isCodingQuestion ? (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center gap-1">
+                <Code2 className="h-3 w-3" /> Coding / Practical
+              </span>
+            ) : (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800">
+                Multiple Choice
+              </span>
+            )}
+          </span>
+          <span>{Object.keys(answers).length} of {totalQ} answered</span>
         </div>
         <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${((currentQ + 1) / totalQ) * 100}%` }} />
         </div>
       </div>
 
-      {/* Question */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-4">
-        <p className="text-white text-lg font-medium mb-6 leading-relaxed">{question.question}</p>
+      {/* Question Card */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-5">
+        <p className="text-white text-lg font-medium mb-4 leading-relaxed">{question.question}</p>
+
+        {/* If Coding Question: Code Box, Hints, & LeetCode link */}
+        {isCodingQuestion && (
+          <div className="space-y-4 mb-6">
+            {/* Starter Code Editor */}
+            {question.starter_code && (
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5 font-mono px-1">
+                  <span>💻 Solution Code Area</span>
+                  {question.practice_url && (
+                    <a
+                      href={question.practice_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Practice on {question.platform || 'LeetCode'}
+                    </a>
+                  )}
+                </div>
+                <textarea
+                  value={userCode[question.id] !== undefined ? userCode[question.id] : question.starter_code}
+                  onChange={(e) => setUserCode((uc) => ({ ...uc, [question.id]: e.target.value }))}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 font-mono text-sm text-cyan-300 focus:outline-none focus:border-cyan-500 resize-y min-h-[140px]"
+                  placeholder="Write or test your code here..."
+                  spellCheck={false}
+                />
+              </div>
+            )}
+
+            {/* Test Case / Sample I/O */}
+            {question.test_cases && question.test_cases.length > 0 && (
+              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 text-xs font-mono space-y-1.5">
+                <p className="text-slate-400 font-sans font-medium text-xs">Sample Test Case:</p>
+                <div className="text-slate-300">
+                  <span className="text-slate-500">Input: </span> {question.test_cases[0].input}
+                </div>
+                <div className="text-emerald-400">
+                  <span className="text-slate-500">Expected Output: </span> {question.test_cases[0].output}
+                </div>
+              </div>
+            )}
+
+            {/* Hint toggle */}
+            {question.hints && question.hints.length > 0 && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowHint((sh) => ({ ...sh, [question.id]: !sh[question.id] }))}
+                  className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
+                >
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  {showHint[question.id] ? 'Hide Hint' : '💡 Show Conceptual Hint'}
+                </button>
+                {showHint[question.id] && (
+                  <p className="mt-2 text-xs text-slate-300 bg-amber-950/30 border border-amber-800/40 rounded-lg p-3 leading-relaxed">
+                    {question.hints.join(' ')}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Options */}
         <div className="space-y-3">
-          {question.options.map((option, optIdx) => (
+          {question.options && question.options.map((option: string, optIdx: number) => (
             <button key={optIdx}
               onClick={() => {
                 setAnswers((a) => ({ ...a, [question.id]: optIdx }));
@@ -160,6 +239,7 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
     </div>
   );
 }
+
 
 export default function AssessmentPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);

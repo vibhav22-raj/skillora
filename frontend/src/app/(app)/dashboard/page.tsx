@@ -230,7 +230,7 @@ export default function DashboardPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}>
                   <Link href={data.next_best_action.type === 'assessment' ? '/assessment' : '/recommendations'}
-                    className="w-full bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-semibold px-4 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30">ex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30">
+                    className="w-full bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-semibold px-4 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30">
                     <Play className="h-4 w-4" />
                     Start Learning Now
                   </Link>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
             ) : (
               <div className="text-slate-200 text-sm">
                 <p className="mb-4">Complete onboarding to get a personalized next step.</p>
-                <Link href="/onboarding" className="inline-flex bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-500/30">Set up your goal →</Link>ded-lg transition-all shadow-lg shadow-indigo-500/30">Set up your goal →</Link>
+                <Link href="/onboarding" className="inline-flex bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-500/30">Set up your goal →</Link>
               </div>
             )}
           </div>

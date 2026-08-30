@@ -1,14 +1,15 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { learningPathAPI } from '@/lib/api';
 import { useState } from 'react';
-import { Map, CheckCircle, Clock, ChevronDown, ChevronUp, BookOpen, Folder, Zap, Star } from 'lucide-react';
+import { Map, CheckCircle, Clock, ChevronDown, ChevronUp, BookOpen, Folder, Zap, Star, ExternalLink, Play, Sparkles, X, Video, FileText, Code2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import type { Roadmap, RoadmapPhase } from '@/types';
 import { cn } from '@/lib/utils';
+import { getTopicGuide, TopicGuide } from '@/lib/roadmapTopics';
 
 const statusColors: Record<string, string> = {
   completed: 'bg-green-900/50 text-green-400 border-green-700/50',
@@ -22,7 +23,144 @@ const statusLabels: Record<string, string> = {
   not_started: '⏳ Not Started',
 };
 
-function PhaseCard({ phase, index }: { phase: RoadmapPhase; index: number }) {
+function TopicModal({ topicName, onClose }: { topicName: string; onClose: () => void }) {
+  const guide: TopicGuide = getTopicGuide(topicName);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative"
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-5 right-5 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-800">
+            {guide.category}
+          </span>
+          <span className="text-xs text-slate-400">Roadmap Topic Guide</span>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-amber-400" />
+          {guide.topic}
+        </h2>
+        <p className="text-slate-300 text-sm leading-relaxed mb-4">{guide.summary}</p>
+
+        {/* Why learn this */}
+        <div className="bg-indigo-950/40 border border-indigo-800/40 rounded-xl p-4 mb-6">
+          <p className="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+            <span>💡</span> Why this matters in your roadmap
+          </p>
+          <p className="text-slate-200 text-sm leading-relaxed">{guide.why_it_matters}</p>
+        </div>
+
+        {/* Official Docs & Articles */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <FileText className="h-4 w-4 text-emerald-400" />
+            Official Documentation & Guides
+          </h3>
+          <div className="space-y-2.5">
+            {guide.articles.map((art, i) => (
+              <a
+                key={i}
+                href={art.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 hover:border-emerald-500/50 rounded-xl transition-all group"
+              >
+                <div className="min-w-0 flex-1 pr-3">
+                  <p className="text-white text-sm font-medium group-hover:text-emerald-300 transition-colors truncate">
+                    {art.title}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {art.provider} {art.duration && `• ${art.duration}`}
+                  </p>
+                </div>
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0 group-hover:bg-emerald-900 transition-colors">
+                  <ExternalLink className="h-3.5 w-3.5" /> Read
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* YouTube Tutorials */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Video className="h-4 w-4 text-red-400" />
+            Top YouTube Video Tutorials
+          </h3>
+          <div className="space-y-2.5">
+            {guide.youtube.map((vid, i) => (
+              <a
+                key={i}
+                href={vid.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 hover:border-red-500/50 rounded-xl transition-all group"
+              >
+                <div className="min-w-0 flex-1 pr-3">
+                  <p className="text-white text-sm font-medium group-hover:text-red-300 transition-colors truncate">
+                    {vid.title}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Channel: <span className="text-slate-300 font-medium">{vid.provider}</span> {vid.duration && `• ${vid.duration}`}
+                  </p>
+                </div>
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-950/60 border border-red-800/60 text-red-300 flex items-center gap-1.5 shrink-0 group-hover:bg-red-900 transition-colors">
+                  <Play className="h-3 w-3 fill-current" /> Watch Video
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Practice Exercises */}
+        {guide.practice.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Code2 className="h-4 w-4 text-cyan-400" />
+              Interactive Practice & Challenges
+            </h3>
+            <div className="space-y-2.5">
+              {guide.practice.map((prac, i) => (
+                <a
+                  key={i}
+                  href={prac.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 hover:border-cyan-500/50 rounded-xl transition-all group"
+                >
+                  <div className="min-w-0 flex-1 pr-3">
+                    <p className="text-white text-sm font-medium group-hover:text-cyan-300 transition-colors truncate">
+                      {prac.title}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">{prac.provider}</p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-cyan-950/60 border border-cyan-800/60 text-cyan-300 flex items-center gap-1 shrink-0 group-hover:bg-cyan-900 transition-colors">
+                    <ExternalLink className="h-3.5 w-3.5" /> Practice
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+function PhaseCard({ phase, index, onSelectTopic }: { phase: RoadmapPhase; index: number; onSelectTopic: (topic: string) => void }) {
   const [expanded, setExpanded] = useState(phase.status === 'in_progress');
 
   return (
@@ -70,11 +208,20 @@ function PhaseCard({ phase, index }: { phase: RoadmapPhase; index: number }) {
           <p className="text-slate-300 text-sm mt-4 mb-5 leading-relaxed">{phase.description}</p>
 
           {/* Skills */}
-          <div className="mb-4">
-            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Skills in this phase</p>
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">Topics & Skills (Click to view resources & YouTube)</p>
+            </div>
             <div className="flex flex-wrap gap-2">
               {phase.skills.map((s) => (
-                <span key={s} className="bg-indigo-950 text-indigo-300 border border-indigo-800 text-xs px-3 py-1 rounded-lg">{s}</span>
+                <button
+                  key={s}
+                  onClick={() => onSelectTopic(s)}
+                  className="bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 hover:text-white border border-indigo-800/80 hover:border-indigo-600 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-xs group"
+                >
+                  <span>{s}</span>
+                  <span className="text-[10px] text-indigo-400 group-hover:text-indigo-200">📚 🎥 →</span>
+                </button>
               ))}
             </div>
           </div>
@@ -83,7 +230,7 @@ function PhaseCard({ phase, index }: { phase: RoadmapPhase; index: number }) {
           {phase.resources?.length > 0 && (
             <div className="mb-4">
               <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider flex items-center gap-1">
-                <BookOpen className="h-3.5 w-3.5" /> Recommended Resources
+                <BookOpen className="h-3.5 w-3.5" /> Phase Core Resources
               </p>
               <div className="space-y-2">
                 {phase.resources.slice(0, 3).map((r: any, i: number) => (
@@ -125,10 +272,12 @@ function PhaseCard({ phase, index }: { phase: RoadmapPhase; index: number }) {
   );
 }
 
+
 export default function RoadmapPage() {
   const queryClient = useQueryClient();
   const [feedbackText, setFeedbackText] = useState('');
   const [isAdapting, setIsAdapting] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['roadmap'],
@@ -267,13 +416,32 @@ export default function RoadmapPage() {
 
       {/* Phases */}
       <div>
-        <h2 className="font-semibold text-white mb-4 text-lg">Learning Phases</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-white text-lg">Learning Phases</h2>
+          <span className="text-xs text-indigo-400">💡 Click any topic badge to view official docs & YouTube tutorials</span>
+        </div>
         <div className="space-y-3">
           {(roadmap.phases || []).map((phase, i) => (
-            <PhaseCard key={phase.phase_number} phase={phase} index={i} />
+            <PhaseCard
+              key={phase.phase_number}
+              phase={phase}
+              index={i}
+              onSelectTopic={(topic) => setSelectedTopic(topic)}
+            />
           ))}
         </div>
       </div>
+
+      {/* Topic Study Guide Modal */}
+      <AnimatePresence>
+        {selectedTopic && (
+          <TopicModal
+            topicName={selectedTopic}
+            onClose={() => setSelectedTopic(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

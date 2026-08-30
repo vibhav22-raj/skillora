@@ -297,6 +297,49 @@ ASSESSMENTS_DATA = [
         "passing_score": 70.0,
         "estimated_minutes": 25,
         "questions": [
+            {
+                "id": "py_code_1",
+                "type": "coding",
+                "question": "Implement a function `count_frequencies(words)` that takes a list of strings and returns a dictionary with word frequencies (case-insensitive).",
+                "starter_code": "def count_frequencies(words: list) -> dict:\n    # Write your solution here\n    freq = {}\n    for word in words:\n        w = word.lower()\n        freq[w] = freq.get(w, 0) + 1\n    return freq",
+                "test_cases": [
+                    {"input": "['apple', 'Banana', 'APPLE', 'orange']", "output": "{'apple': 2, 'banana': 1, 'orange': 1}"}
+                ],
+                "hints": [
+                    "Use .lower() to ensure case-insensitivity.",
+                    "Use dict.get(key, 0) or collections.Counter for efficient counting."
+                ],
+                "practice_url": "https://leetcode.com/problems/valid-anagram/",
+                "platform": "LeetCode",
+                "options": [
+                    "Use a dict with .lower() and dict.get(w, 0) + 1 (O(N) time, O(U) space)",
+                    "Nested for-loops counting each word with words.count() (O(N²) time)",
+                    "Convert to set then use words.count() without lowercasing",
+                    "Sort the list first then use binary search for each word"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "Using a dictionary with .lower() and dict.get(w, 0) + 1 executes in linear O(N) time and handles case-insensitivity cleanly."
+            },
+            {
+                "id": "py_code_2",
+                "type": "coding",
+                "question": "Implement a class `BankAccount` with `deposit(amount)` and `withdraw(amount)` methods that properly updates balance and raises ValueError if withdrawing more than balance.",
+                "starter_code": "class BankAccount:\n    def __init__(self, initial_balance: float = 0.0):\n        self.balance = initial_balance\n        \n    def deposit(self, amount: float) -> float:\n        self.balance += amount\n        return self.balance\n        \n    def withdraw(self, amount: float) -> float:\n        if amount > self.balance:\n            raise ValueError('Insufficient funds')\n        self.balance -= amount\n        return self.balance",
+                "test_cases": [
+                    {"input": "acc = BankAccount(100); acc.deposit(50); acc.withdraw(30)", "output": "balance = 120.0"}
+                ],
+                "hints": ["Store balance as an instance attribute `self.balance`.", "Check if `amount > self.balance` before subtracting."],
+                "options": [
+                    "Store balance in self.balance, check amount > self.balance before subtracting",
+                    "Use global variable balance without encapsulation",
+                    "Allow balance to go negative without raising an exception",
+                    "Use class-level variable BankAccount.balance shared across all accounts"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "Encapsulating balance within instance variable `self.balance` and validating withdrawal amount ensures data integrity."
+            },
             {"id": "py1", "question": "What is the output of `print(type([]))` ?", "options": ["<class 'list'>", "<class 'tuple'>", "<class 'array'>", "<class 'dict'>"], "correct_answer": 0, "difficulty": "easy", "explanation": "[] creates an empty list, so type([]) returns <class 'list'>."},
             {"id": "py2", "question": "Which of these is NOT a valid Python data type?", "options": ["int", "float", "char", "bool"], "correct_answer": 2, "difficulty": "easy", "explanation": "Python has no 'char' type. Single characters are strings (str)."},
             {"id": "py3", "question": "What does `len('hello')` return?", "options": ["4", "5", "6", "Error"], "correct_answer": 1, "difficulty": "easy", "explanation": "'hello' has 5 characters, so len() returns 5."},
@@ -315,8 +358,6 @@ ASSESSMENTS_DATA = [
             {"id": "py16", "question": "What is the output of `try: 1/0 except ZeroDivisionError: print('caught') finally: print('done')` ?", "options": ["caught", "done", "caught\\ndone", "Error"], "correct_answer": 2, "difficulty": "hard", "explanation": "The except block catches ZeroDivisionError and prints 'caught'. The finally block ALWAYS runs and prints 'done'."},
             {"id": "py17", "question": "You have a function that should cache expensive results. Which Python tool is most appropriate?", "options": ["try/except", "@functools.lru_cache", "global variables", "threading.Lock"], "correct_answer": 1, "difficulty": "hard", "explanation": "@functools.lru_cache memoizes function results, so repeated calls with the same arguments return cached results instantly."},
             {"id": "py18", "question": "What is the GIL (Global Interpreter Lock)?", "options": ["A security feature blocking dangerous code", "A mutex that prevents multiple Python threads from executing Python bytecodes simultaneously", "A way to lock variables", "A garbage collection mechanism"], "correct_answer": 1, "difficulty": "hard", "explanation": "The GIL ensures only one thread executes Python bytecode at a time, which affects CPU-bound multithreaded programs."},
-            {"id": "py19", "question": "What is the output of `sorted([3,1,2], key=lambda x: -x)` ?", "options": ["[1, 2, 3]", "[3, 2, 1]", "[-3, -2, -1]", "Error"], "correct_answer": 1, "difficulty": "hard", "explanation": "The key=lambda x: -x sorts by negative value, which reverses the order: [3, 2, 1]."},
-            {"id": "py20", "question": "What is the difference between `deepcopy` and `copy` from the copy module?", "options": ["No difference", "deepcopy creates an independent copy of all nested objects; copy only copies the outer object", "copy is faster only", "deepcopy only works with lists"], "correct_answer": 1, "difficulty": "hard", "explanation": "copy() creates a shallow copy (nested objects are shared). deepcopy() recursively copies all nested objects."},
         ]
     },
     {
@@ -325,6 +366,30 @@ ASSESSMENTS_DATA = [
         "passing_score": 70.0,
         "estimated_minutes": 30,
         "questions": [
+            {
+                "id": "ml_code_1",
+                "type": "coding",
+                "question": "Implement a Scikit-Learn data preprocessing function `prepare_features(df, numerical_cols)` that fills missing values with the median and applies StandardScaler.",
+                "starter_code": "from sklearn.preprocessing import StandardScaler\nfrom sklearn.impute import SimpleImputer\nimport pandas as pd\n\ndef prepare_features(df: pd.DataFrame, num_cols: list):\n    # Step 1: Impute missing values with median\n    imputer = SimpleImputer(strategy='median')\n    df[num_cols] = imputer.fit_transform(df[num_cols])\n    \n    # Step 2: Scale features\n    scaler = StandardScaler()\n    df[num_cols] = scaler.fit_transform(df[num_cols])\n    return df",
+                "test_cases": [
+                    {"input": "df with missing ages: [25, NaN, 35]", "output": "scaled values with 0 mean and 1 variance"}
+                ],
+                "hints": [
+                    "Use SimpleImputer(strategy='median') to handle outliers safely.",
+                    "Fit and transform the imputer first, then fit and transform StandardScaler."
+                ],
+                "practice_url": "https://www.kaggle.com/learn/intro-to-machine-learning",
+                "platform": "Kaggle",
+                "options": [
+                    "SimpleImputer(strategy='median') followed by StandardScaler() on numerical columns",
+                    "Drop all rows with NaN values and multiply by 100",
+                    "Fill NaNs with 0 and use OneHotEncoder on continuous columns",
+                    "Replace NaNs with string 'missing' without scaling"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "Median imputation preserves central tendency robustly against outliers, and StandardScaler normalizes features to zero mean and unit variance."
+            },
             {"id": "ml1", "question": "What is overfitting in machine learning?", "options": ["The model is too simple", "The model performs well on training data but poorly on new data", "Training takes too long", "The dataset is too large"], "correct_answer": 1, "difficulty": "easy", "explanation": "Overfitting occurs when a model memorizes training data patterns but fails to generalize."},
             {"id": "ml2", "question": "What does 'training accuracy: 99%, validation accuracy: 65%' most likely indicate?", "options": ["Good model", "Underfitting", "Overfitting", "Perfect generalization"], "correct_answer": 2, "difficulty": "easy", "explanation": "High training but low validation accuracy is a classic sign of overfitting."},
             {"id": "ml3", "question": "What does the 'k' in K-Nearest Neighbors represent?", "options": ["Number of features", "Number of training iterations", "Number of nearest neighbors to consider", "Number of classes"], "correct_answer": 2, "difficulty": "easy", "explanation": "k is the number of nearest neighbors used to make a prediction."},
@@ -341,10 +406,6 @@ ASSESSMENTS_DATA = [
             {"id": "ml14", "question": "Your model achieves 98% accuracy on test data. A domain expert says results look suspicious. What should you check first?", "options": ["The model architecture", "Data leakage (test data information bleeding into training)", "Learning rate", "Number of epochs"], "correct_answer": 1, "difficulty": "hard", "explanation": "Suspiciously high accuracy often indicates data leakage — test set labels influencing training through improper preprocessing."},
             {"id": "ml15", "question": "What does PCA (Principal Component Analysis) primarily do?", "options": ["Classifies data", "Reduces dimensionality by finding directions of maximum variance", "Handles missing values", "Improves model accuracy directly"], "correct_answer": 1, "difficulty": "hard", "explanation": "PCA projects data onto principal components (directions of maximum variance) to reduce dimensions while preserving information."},
             {"id": "ml16", "question": "What is a learning rate scheduler?", "options": ["A tool to set training time", "A technique to adaptively change the learning rate during training", "A method to select the best model", "Hardware configuration for ML"], "correct_answer": 1, "difficulty": "hard", "explanation": "Learning rate schedulers reduce the learning rate over time, helping the model converge more precisely."},
-            {"id": "ml17", "question": "What is the key difference between classification and regression?", "options": ["Speed of training", "Classification predicts discrete categories; regression predicts continuous values", "Number of features", "Algorithm type only"], "correct_answer": 1, "difficulty": "easy", "explanation": "Classification: Is this email spam? (yes/no). Regression: What will house prices be? (a number)."},
-            {"id": "ml18", "question": "What is ensemble learning?", "options": ["Training on multiple datasets", "Combining predictions from multiple models to improve performance", "A type of neural network", "Data augmentation"], "correct_answer": 1, "difficulty": "medium", "explanation": "Ensemble methods (Random Forest, Gradient Boosting) combine multiple weaker models to create a stronger predictor."},
-            {"id": "ml19", "question": "When should you normalize/standardize features?", "options": ["Never", "Only for tree-based models", "When using distance-based algorithms (KNN, SVM, k-means) or gradient-based optimization", "Only when accuracy is low"], "correct_answer": 2, "difficulty": "hard", "explanation": "Distance-based algorithms are sensitive to feature scales. Gradient descent converges faster with normalized features."},
-            {"id": "ml20", "question": "What does SHAP (SHapley Additive exPlanations) help with?", "options": ["Model training speed", "Explaining individual predictions by quantifying each feature's contribution", "Data preprocessing", "Hyperparameter tuning"], "correct_answer": 1, "difficulty": "hard", "explanation": "SHAP provides model interpretability by showing how much each feature contributed to a specific prediction."},
         ]
     },
     {
@@ -353,6 +414,56 @@ ASSESSMENTS_DATA = [
         "passing_score": 70.0,
         "estimated_minutes": 30,
         "questions": [
+            {
+                "id": "dsa_code_1",
+                "type": "coding",
+                "question": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers such that they add up to `target`. Time complexity must be O(N).",
+                "starter_code": "def two_sum(nums: list[int], target: int) -> list[int]:\n    # Hash map to store complement -> index\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return []",
+                "test_cases": [
+                    {"input": "nums = [2, 7, 11, 15], target = 9", "output": "[0, 1]"},
+                    {"input": "nums = [3, 2, 4], target = 6", "output": "[1, 2]"}
+                ],
+                "hints": [
+                    "Can you solve this in one pass using a Hash Map?",
+                    "Store `target - num` as the key and the current index as the value."
+                ],
+                "practice_url": "https://leetcode.com/problems/two-sum/",
+                "platform": "LeetCode",
+                "options": [
+                    "Single pass using a Hash Map: O(N) time, O(N) space",
+                    "Two nested loops checking all pairs: O(N²) time, O(1) space",
+                    "Sort the array then use two pointers: O(N log N) time",
+                    "Binary search every element: O(N log N) time"
+                ],
+                "correct_answer": 0,
+                "difficulty": "medium",
+                "explanation": "A hash map enables O(1) lookups for the complement `target - num`, allowing the entire list to be processed in linear O(N) time."
+            },
+            {
+                "id": "dsa_code_2",
+                "type": "coding",
+                "question": "Implement Binary Search to find the index of `target` in a sorted array `nums`. Return `-1` if target is not found. Time complexity must be O(log N).",
+                "starter_code": "def binary_search(nums: list[int], target: int) -> int:\n    left, right = 0, len(nums) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if nums[mid] == target:\n            return mid\n        elif nums[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1",
+                "test_cases": [
+                    {"input": "nums = [-1,0,3,5,9,12], target = 9", "output": "4"},
+                    {"input": "nums = [-1,0,3,5,9,12], target = 2", "output": "-1"}
+                ],
+                "hints": [
+                    "Maintain `left` and `right` pointers.",
+                    "Calculate `mid = (left + right) // 2` and halve the search space at each iteration."
+                ],
+                "practice_url": "https://leetcode.com/problems/binary-search/",
+                "platform": "LeetCode",
+                "options": [
+                    "Divide search space in half each iteration with two pointers: O(log N) time, O(1) space",
+                    "Linear scan from index 0 to N-1: O(N) time",
+                    "Recursively slice the array `nums[:mid]`: O(N) space due to list copying",
+                    "Sort the array again and check index 0: O(N log N) time"
+                ],
+                "correct_answer": 0,
+                "difficulty": "easy",
+                "explanation": "Binary search halves the remaining elements at each step using two pointers, achieving optimal O(log N) time complexity with O(1) space."
+            },
             {"id": "dsa1", "question": "What is the time complexity of binary search?", "options": ["O(n)", "O(log n)", "O(n log n)", "O(1)"], "correct_answer": 1, "difficulty": "easy", "explanation": "Binary search halves the search space each step: O(log n)."},
             {"id": "dsa2", "question": "Which data structure uses LIFO (Last In, First Out)?", "options": ["Queue", "Stack", "Linked List", "Heap"], "correct_answer": 1, "difficulty": "easy", "explanation": "A Stack follows LIFO — the last element added is the first removed."},
             {"id": "dsa3", "question": "What is the worst-case time complexity of Quicksort?", "options": ["O(n log n)", "O(n²)", "O(n)", "O(log n)"], "correct_answer": 1, "difficulty": "easy", "explanation": "Quicksort degrades to O(n²) with bad pivot selection (e.g., already sorted arrays with first-element pivot)."},
@@ -369,10 +480,6 @@ ASSESSMENTS_DATA = [
             {"id": "dsa14", "question": "What distinguishes a graph from a tree?", "options": ["Graphs have more nodes", "Graphs can have cycles; trees are acyclic connected graphs", "Trees are directed; graphs are not", "No difference"], "correct_answer": 1, "difficulty": "medium", "explanation": "Trees are connected acyclic graphs with exactly n-1 edges for n nodes. Graphs can have cycles and may be disconnected."},
             {"id": "dsa15", "question": "Dijkstra's algorithm fails on graphs with which type of edges?", "options": ["Directed edges", "Undirected edges", "Negative weight edges", "Weighted edges"], "correct_answer": 2, "difficulty": "hard", "explanation": "Dijkstra's assumes all edge weights are non-negative. For negative weights, use Bellman-Ford."},
             {"id": "dsa16", "question": "What is the difference between DFS and BFS in terms of space complexity?", "options": ["DFS: O(n), BFS: O(n)", "DFS: O(h) where h=height, BFS: O(w) where w=max width of a level", "Both O(1)", "DFS: O(log n), BFS: O(n)"], "correct_answer": 1, "difficulty": "hard", "explanation": "DFS uses stack space proportional to height. BFS uses queue space proportional to the widest level."},
-            {"id": "dsa17", "question": "What does amortized O(1) mean for dynamic array append?", "options": ["Every append is O(1)", "On average across many operations, each append is O(1) even though occasional resizing costs O(n)", "Append is free", "Only the first append is O(1)"], "correct_answer": 1, "difficulty": "hard", "explanation": "When a dynamic array resizes, it doubles capacity. The total cost spread across all appends averages to O(1) per operation."},
-            {"id": "dsa18", "question": "What is a trie data structure used for?", "options": ["Sorting numbers", "Efficient prefix-based string search and autocomplete", "Graph traversal", "Heap operations"], "correct_answer": 1, "difficulty": "hard", "explanation": "A trie stores strings character by character, enabling O(L) prefix search where L is string length — ideal for autocomplete."},
-            {"id": "dsa19", "question": "What is the difference between stable and unstable sorting algorithms?", "options": ["Speed difference", "Stable sorts maintain relative order of equal elements; unstable may not", "Memory usage", "Stability affects only floating-point numbers"], "correct_answer": 1, "difficulty": "medium", "explanation": "Stable: Merge Sort, Insertion Sort. Unstable: Quick Sort, Heap Sort. Important when sorting objects by multiple keys."},
-            {"id": "dsa20", "question": "What is a segment tree used for?", "options": ["Sorting large arrays", "Efficient range queries (sum, min, max) and point updates on arrays: O(log n)", "Graph shortest paths", "Hashing strings"], "correct_answer": 1, "difficulty": "hard", "explanation": "Segment trees support range queries (e.g., sum of elements from index i to j) and updates in O(log n) time."},
         ]
     },
     {

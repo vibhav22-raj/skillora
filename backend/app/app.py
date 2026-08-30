@@ -1,2 +1,2 @@
 """Vercel-recognized FastAPI entry point."""
-from app.main import app
+from backend.app.main import app
