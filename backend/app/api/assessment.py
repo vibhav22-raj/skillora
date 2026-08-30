@@ -207,7 +207,22 @@ async def submit_assessment(
         user_skill = skill_result.scalar_one_or_none()
         if user_skill:
             user_skill.current_level = max(user_skill.current_level, skill_estimate)
+            user_skill.gap_score = float(max(0, user_skill.target_level - user_skill.current_level))
+            user_skill.priority = "low" if user_skill.gap_score <= 1 else "medium" if user_skill.gap_score <= 2 else "high"
             user_skill.last_assessed = datetime.utcnow()
+        else:
+            new_us = UserSkill(
+                id=str(uuid.uuid4()),
+                user_id=current_user.id,
+                skill_id=str(uuid.uuid4()),
+                skill_name=assessment.skill_name,
+                current_level=skill_estimate,
+                target_level=5,
+                gap_score=float(max(0, 5 - skill_estimate)),
+                priority="high" if skill_estimate < 3 else "medium",
+                last_assessed=datetime.utcnow(),
+            )
+            db.add(new_us)
 
     await db.commit()
 

@@ -60,6 +60,18 @@ async def get_recommendations(
     result = await db.execute(select(LearningResource))
     resources = result.scalars().all()
 
+    # Get user completed resources
+    try:
+        from backend.app.models import Progress as ProgressModel
+    except ImportError:
+        from app.models import Progress as ProgressModel
+
+    progress_result = await db.execute(
+        select(ProgressModel.resource_id)
+        .where(ProgressModel.user_id == current_user.id, ProgressModel.status == "completed")
+    )
+    completed_resource_ids = set(progress_result.scalars().all())
+
     # Score each resource
     scored = []
     for resource in resources:
@@ -79,7 +91,9 @@ async def get_recommendations(
             "description": resource.description,
         }
         scores = score_resource(resource_dict, profile_dict, skill_gaps, user_skill_names)
-        scored.append({**resource_dict, **scores})
+        is_completed = resource.id in completed_resource_ids
+        adjusted_score = round(scores["score"] * 0.15, 3) if is_completed else scores["score"]
+        scored.append({**resource_dict, **scores, "score": adjusted_score, "is_completed": is_completed})
 
     # Sort by score descending
     scored.sort(key=lambda x: x["score"], reverse=True)

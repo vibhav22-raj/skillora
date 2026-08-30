@@ -116,10 +116,15 @@ async def update_skill_level(
 
     if user_skill:
         user_skill.current_level = update.level
+        user_skill.gap_score = float(max(0, user_skill.target_level - update.level))
+        user_skill.priority = "low" if user_skill.gap_score <= 1 else "medium" if user_skill.gap_score <= 2 else "high"
     else:
         # Get skill id
         skill_result = await db.execute(select(Skill).where(Skill.name == skill_name))
         skill = skill_result.scalar_one_or_none()
+
+        gap_score = float(max(0, 5 - update.level))
+        priority = "low" if gap_score <= 1 else "medium" if gap_score <= 2 else "high"
 
         user_skill = UserSkill(
             id=str(uuid.uuid4()),
@@ -128,8 +133,8 @@ async def update_skill_level(
             skill_name=skill_name,
             current_level=update.level,
             target_level=5,
-            gap_score=0.0,
-            priority="medium",
+            gap_score=gap_score,
+            priority=priority,
         )
         db.add(user_skill)
 

@@ -74,34 +74,44 @@ async def get_recommended_projects(
     projects_result = await db.execute(select(Project))
     all_projects = projects_result.scalars().all()
 
-    # Score projects by skill overlap, gap coverage and role relevance
-    from app.recommender.skill_gap import calculate_gaps
+    # Score projects by genuine skill gap coverage, prerequisite fit, and role relevance
+    try:
+        from backend.app.recommender.skill_gap import calculate_gaps
+    except ImportError:
+        from app.recommender.skill_gap import calculate_gaps
 
-    current_skills_dict = {s: 0 for s in user_skill_names}
+    current_skills_dict = {us.skill_name: us.current_level for us in user_skills}
     skill_gaps = []
     if profile and profile.target_role:
         skill_gaps = calculate_gaps(profile.target_role, current_skills_dict)
-    gap_skill_names = [g['skill_name'] for g in skill_gaps[:5]]
+    
+    gap_priorities = {g['skill_name']: g.get('gap', 0) for g in skill_gaps if g.get('gap', 0) > 0}
+    exp_level = (profile.experience_level if profile else "beginner") or "beginner"
+    target_diff = 2 if exp_level == "beginner" else 3 if exp_level == "intermediate" else 4
 
     scored = []
     for project in all_projects:
-        overlap = sum(1 for s in project.skills if s in user_skill_names)
+        # Skills the learner already has to build this project
+        ready_skills = sum(1 for s in project.skills if current_skills_dict.get(s, 0) >= 2)
         total_skills = len(project.skills) if project.skills else 1
-        overlap_score = overlap / total_skills
+        readiness_score = ready_skills / total_skills
 
-        # How many project skills cover the user's high-priority gaps
-        gap_coverage = sum(1 for s in project.skills if s in gap_skill_names)
+        # Project skills that address active learning gaps
+        gap_score = sum(gap_priorities.get(s, 0) for s in project.skills)
 
-        # Role/domain match heuristic
-        role_match = 0
+        # Difficulty proximity
+        diff_fit = 1.0 - (abs(project.difficulty - target_diff) * 0.2)
+
+        # Role relevance
+        role_match = 0.0
         tgt = (profile.target_role or "").lower() if profile else ""
-        if tgt and project.domain and tgt in (project.domain or "").lower():
-            role_match = 1
-        if tgt and project.title and tgt in project.title.lower():
-            role_match = max(role_match, 1)
+        if tgt and project.domain and (tgt in project.domain.lower() or project.domain.lower() in tgt):
+            role_match = 1.0
+        if tgt and project.title and any(w in project.title.lower() for w in tgt.split()):
+            role_match = max(role_match, 0.8)
 
-        # Weighted score
-        score = overlap_score + (gap_coverage * 0.8) + (role_match * 0.5)
+        # Weighted final score: prioritizing gaps and role fit
+        score = (gap_score * 1.2) + (readiness_score * 0.8) + (role_match * 1.5) + (diff_fit * 0.5)
         scored.append((score, project))
 
     scored.sort(key=lambda x: x[0], reverse=True)

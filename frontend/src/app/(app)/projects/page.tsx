@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { projectsAPI } from '@/lib/api';
@@ -101,14 +102,17 @@ export default function ProjectsPage() {
       {/* Action */}
       {project.github_template_url ? (
         <a href={project.github_template_url} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-indigo-900/50 border border-slate-700 hover:border-indigo-500 text-slate-300 hover:text-indigo-300 py-2.5 rounded-xl text-sm transition-all">
+          className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-indigo-900/50 border border-slate-700 hover:border-indigo-500 text-slate-300 hover:text-indigo-300 py-2.5 rounded-xl text-sm font-medium transition-all">
           <ExternalLink className="h-4 w-4" />
-          View Template
+          View Template Repo
         </a>
       ) : (
-        <div className="flex items-center justify-center gap-2 bg-slate-800 border border-slate-700 text-slate-500 py-2.5 rounded-xl text-sm">
-          Build from scratch
-        </div>
+        <Link
+          href={`/chat?prompt=${encodeURIComponent(`I want to start the project "${project.title}". Can you give me a step-by-step implementation blueprint, tech stack breakdown, and key milestones?`)}`}
+          className="flex items-center justify-center gap-2 bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-700/60 hover:border-indigo-500 text-indigo-300 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm"
+        >
+          <span>🚀</span> Start with AI Blueprint
+        </Link>
       )}
     </motion.div>
   );

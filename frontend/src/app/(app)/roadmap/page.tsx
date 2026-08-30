@@ -284,11 +284,17 @@ export default function RoadmapPage() {
     queryFn: () => learningPathAPI.get().then((r) => r.data.data),
   });
 
+  const dashboardQuery = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => dashboardAPI.get().then((r) => r.data.data),
+  });
+
   const adaptMutation = useMutation({
     mutationFn: (feedback: string) => learningPathAPI.adapt(feedback),
     onSuccess: (res) => {
       toast.success(res.data.message || 'Roadmap adapted!');
       queryClient.invalidateQueries({ queryKey: ['roadmap'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       setFeedbackText('');
       setIsAdapting(false);
     },
@@ -318,7 +324,6 @@ export default function RoadmapPage() {
   );
 
   const roadmap = data as Roadmap;
-  const dashboardQuery = useQuery({ queryKey: ['dashboard-stats'], queryFn: () => dashboardAPI.get().then((r) => r.data.data) });
 
   // Use dashboard's authoritative overall_progress for consistency across pages
   const progress = dashboardQuery.data?.overall_progress ?? Math.round(((roadmap.phases || []).filter((p) => p.status === 'completed').length / (roadmap.phases?.length || 1)) * 100);

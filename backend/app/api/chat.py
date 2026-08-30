@@ -90,10 +90,24 @@ async def _build_context(user: User, db: AsyncSession) -> dict:
             "completed_at": latest_attempt.completed_at.isoformat() if latest_attempt.completed_at else None,
         }
 
+    try:
+        from backend.app.models import Progress, LearningResource
+    except ImportError:
+        from app.models import Progress, LearningResource
+
+    completed_result = await db.execute(
+        select(LearningResource.title)
+        .join(Progress, Progress.resource_id == LearningResource.id)
+        .where(Progress.user_id == user.id, Progress.status == "completed")
+        .limit(5)
+    )
+    completed_titles = list(completed_result.scalars().all())
+
     return {
         "profile": profile_dict,
         "skill_gaps": skill_gaps,
         "current_skills": current_skills,
+        "completed_resources": completed_titles,
         "roadmap": {
             "title": roadmap.title if roadmap else None,
             "total_weeks": roadmap.total_weeks if roadmap else None,
