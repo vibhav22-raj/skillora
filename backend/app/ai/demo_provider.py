@@ -173,7 +173,7 @@ class DemoProvider(BaseAIProvider):
                                                         "function", "gradient", "neural", "regression", "sql",
                                                         "join", "api", "docker", "git", "algorithm", "complexity",
                                                         "overfitting", "bias", "variance", "clustering"]):
-            response = self._concept_explanation(last_lower, context)
+            response = self._concept_explanation(last_lower, context, lang=lang)
         else:
             response = self._general_mentor_response(last_lower, context)
 
@@ -186,21 +186,27 @@ class DemoProvider(BaseAIProvider):
         return response
 
     def _detect_language(self, text: str) -> str:
-        """Detect if text is Hindi, Hinglish, or English."""
+        """Detect if text is Hindi, Hinglish, or English using word-boundary matching."""
+        import re
         # Hindi Devanagari script detection
         if any('\u0900' <= c <= '\u097f' for c in text):
             return "hindi"
 
-        # Hinglish keywords (romanized Hindi commonly used by Indian learners)
+        # Hinglish keywords — use word-boundary matching to avoid false positives
+        # e.g. 'ek' must NOT match inside 'like', 'make', 'beginner', 'take'
         hinglish_markers = [
             "mujhe", "kaise", "kya", "hai", "nahi", "nahin", "bhai", "yaar",
-            "samajh", "batao", "samjhao", "seekhna", "sikho", "padh", "kar",
-            "matlab", "acha", "theek", "haan", "haan", "please", "please",
-            "bahut", "thoda", "accha", "zyada", "kam", "help", "karo",
-            "ek", "do", "teen", "char", "pehle", "baad", "phir",
+            "samajh", "batao", "samjhao", "seekhna", "sikho", "padhu",
+            "matlab", "acha", "theek", "haan", "bahut", "thoda", "accha",
+            "zyada", "karo", "pehle", "baad", "phir", "aaj", "seekhu",
+            "aata", "padh", "karu", "karun", "banaun",
         ]
         text_lower = text.lower()
-        if sum(1 for w in hinglish_markers if w in text_lower) >= 2:
+        matched = sum(
+            1 for w in hinglish_markers
+            if re.search(r'\b' + re.escape(w) + r'\b', text_lower)
+        )
+        if matched >= 2:
             return "hinglish"
 
         return "english"
@@ -492,44 +498,43 @@ class DemoProvider(BaseAIProvider):
             f"Which specific concepts felt most confusing? I can recommend targeted resources."
         )
 
-    def _concept_explanation(self, message: str, context: Dict) -> str:
+    def _concept_explanation(self, message: str, context: Dict, lang: str = "english") -> str:
         """Explain programming/ML concepts in a simple, structured way."""
         profile = context.get("profile", {})
         target_role = profile.get("target_role", "Software Engineer")
+        is_hinglish = lang in ("hinglish", "hindi")
 
-        concept_map = {
+        concept_map_en = {
             "recursion": (
-                "**Recursion** — Simple se samjhte hain! 🧠\n\n"
-                "**Simple idea:** A function that calls itself.\n\n"
-                "**Real-world analogy:** Socho tum ek room ke andar ho, aur us room mein ek aur chhota room hai, "
-                "aur us mein bhi ek aur... jab tak ek empty room na mile. Recursion wahi karta hai — tab tak "
-                "problem ko chhota karta hai jab tak solve na ho jaye.\n\n"
+                "**Recursion** — A function that calls itself! 🧠\n\n"
+                "**Simple idea:** Break a big problem into smaller identical subproblems until you hit the simplest case.\n\n"
+                "**Real-world analogy:** Imagine looking up a word in a dictionary — the definition uses another word you need to look up too, until you reach a word you already know.\n\n"
                 "**Code example:**\n```python\ndef factorial(n):\n    if n == 0:  # base case — STOP!\n        return 1\n"
-                "    return n * factorial(n - 1)  # call itself\n\nfactorial(5)  # = 5 × 4 × 3 × 2 × 1 = 120\n```\n\n"
-                "**Key rules:**\n1. Always have a **base case** (otherwise infinite loop!)\n"
-                "2. Each call should bring you **closer to the base case**\n\n"
-                "**Quick recap:** Function calls itself → smaller problem → base case → done! 🎉"
+                "    return n * factorial(n - 1)  # call itself with smaller problem\n\nfactorial(5)  # = 5 × 4 × 3 × 2 × 1 = 120\n```\n\n"
+                "**Two rules of recursion:**\n1. Always have a **base case** (otherwise infinite loop!)\n"
+                "2. Each call must move **closer to the base case**\n\n"
+                "**Quick recap:** Function → calls itself with smaller input → base case → unwinds! 🎉"
             ),
             "overfitting": (
-                "**Overfitting** — Let's break it down! 🎯\n\n"
-                "**Simple idea:** Your model memorized the training data instead of learning patterns.\n\n"
-                "**Real-world analogy:** Imagine a student who memorizes every past exam question word-for-word. "
-                "They score 100% on practice papers but fail the real exam because the questions are different.\n\n"
+                "**Overfitting** — When your model memorizes instead of learning! 🎯\n\n"
+                "**Simple idea:** The model learns the training data too well — including its noise — so it fails on new data.\n\n"
+                "**Real-world analogy:** A student who memorizes every past exam question word-for-word. "
+                "They score 100% on practice papers but fail the real exam because the questions are slightly different.\n\n"
                 "**Symptoms:**\n- Training accuracy: 99% ✅\n- Test accuracy: 60% ❌\n\n"
                 "**Fixes:**\n1. Get more training data\n2. Use regularization (L1/L2)\n3. Dropout (for neural nets)\n"
                 "4. Reduce model complexity\n5. Cross-validation\n\n"
-                "**Bias-Variance tradeoff:** Overfitting = low bias, high variance. We want the sweet spot!"
+                "**Bias-Variance tradeoff:** Overfitting = low bias, high variance. You want the sweet spot!"
             ),
             "gradient": (
-                "**Gradient Descent** — Samjho ek pahaad se utarne ki tarah! ⛰️\n\n"
-                "**Simple idea:** An algorithm to minimize a loss function by moving in the steepest downhill direction.\n\n"
-                "**Analogy:** Andhere mein pahaad se uthna hai. Har step pe feel karo — kaunsi taraf neeche hai? "
-                "Us direction mein ek chhota step lo. Repeat karo jab tak valley mein na pahuncho.\n\n"
+                "**Gradient Descent** — An optimization algorithm! ⛰️\n\n"
+                "**Simple idea:** Minimize a loss function by repeatedly stepping in the direction of steepest descent.\n\n"
+                "**Analogy:** You're blindfolded on a hilly landscape trying to reach the lowest point. "
+                "At each step, you feel the slope and take a small step downhill. Repeat until flat.\n\n"
                 "**Math:**\n```\nw = w - learning_rate × gradient_of_loss\n```\n\n"
-                "**Types:**\n- Batch GD: Uses all data (slow but accurate)\n"
+                "**Types:**\n- Batch GD: Uses all data (accurate but slow)\n"
                 "- SGD: Uses 1 sample (fast but noisy)\n"
-                "- Mini-batch GD: Uses small batches (best of both) ✅\n\n"
-                "**Learning rate matters:** Too high → overshoots. Too low → takes forever."
+                "- Mini-batch GD: Uses small batches (best balance) ✅\n\n"
+                "**Learning rate matters:** Too high → overshoots the minimum. Too low → takes forever."
             ),
             "sql": (
                 "**SQL Joins** — The most important SQL concept! 🔗\n\n"
@@ -541,6 +546,44 @@ class DemoProvider(BaseAIProvider):
                 "**Memory trick:** INNER = intersection, LEFT = keep all left, RIGHT = keep all right, FULL = keep everything"
             ),
         }
+
+        concept_map_hinglish = {
+            "recursion": (
+                "**Recursion** — Simple se samjhte hain! 🧠\n\n"
+                "**Simple idea:** Ek function jo khud ko hi call karta hai.\n\n"
+                "**Real-world analogy:** Socho tum ek room ke andar ho, aur us room mein ek aur chhota room hai — "
+                "jab tak ek empty room na mile. Recursion wahi karta hai!\n\n"
+                "**Code example:**\n```python\ndef factorial(n):\n    if n == 0:  # base case — STOP!\n        return 1\n"
+                "    return n * factorial(n - 1)  # khud ko call karo\n\nfactorial(5)  # = 120\n```\n\n"
+                "**Yaad rakho:** Base case zaroori hai, warna infinite loop ho jaayega! 🔁"
+            ),
+            "overfitting": (
+                "**Overfitting** — Samjho ek student ki tarah! 🎯\n\n"
+                "**Problem:** Model ne training data ko zyada yaad kar liya — patterns ki jagah examples.\n\n"
+                "**Analogy:** Ek student jo sirf purane papers yaad karta hai. Exam mein new question aaye toh fail! 😅\n\n"
+                "**Symptoms:**\n- Training accuracy: 99% ✅\n- Test accuracy: 60% ❌\n\n"
+                "**Solutions:**\n1. Zyada data lao\n2. Regularization (L1/L2)\n3. Dropout use karo\n4. Simple model banao\n\n"
+                "**Key:** Low bias, high variance = overfitting. Balance chahiye!"
+            ),
+            "gradient": (
+                "**Gradient Descent** — Samjho pahaad se utarne ki tarah! ⛰️\n\n"
+                "**Simple idea:** Loss function minimize karna — downhill steps leke.\n\n"
+                "**Analogy:** Andhere mein pahaad se utarna hai. Har step pe feel karo — neeche kaunsi direction hai? "
+                "Us taraf chalo jab tak valley mein na pahuncho.\n\n"
+                "**Math:**\n```\nw = w - learning_rate × gradient\n```\n\n"
+                "**Types:**\n- Batch GD: Slow but accurate\n- SGD: Fast but noisy\n- Mini-batch: Best ✅\n\n"
+                "**Learning rate:** Zyada bada → overshoot. Zyada chhota → bahut slow."
+            ),
+            "sql": (
+                "**SQL Joins** — Bahut important concept! 🔗\n\n"
+                "**INNER JOIN:** Sirf matching rows aate hain\n"
+                "**LEFT JOIN:** Left table ke saare rows aate hain, right ke sirf matching\n\n"
+                "```sql\nSELECT users.name, orders.item\nFROM users INNER JOIN orders ON users.id = orders.user_id;\n```\n\n"
+                "**Trick:** Socho Venn diagram — INNER = intersection, LEFT = left circle poora!"
+            ),
+        }
+
+        concept_map = concept_map_hinglish if is_hinglish else concept_map_en
 
         # Find matching concept
         for key, explanation in concept_map.items():
@@ -560,6 +603,8 @@ class DemoProvider(BaseAIProvider):
             f"I can give you a detailed breakdown of any topic in your {target_role} roadmap!\n\n"
             f"For example: *\"Explain recursion\"*, *\"What is overfitting?\"*, *\"How does gradient descent work?\"*"
         )
+
+
 
     def _general_mentor_response(self, message: str, context: Dict) -> str:
         profile = context.get("profile", {})

@@ -428,6 +428,7 @@ ASSESSMENTS_DATA = [
 
 async def seed_database():
     """Main seed function — idempotent, safe to run multiple times."""
+    from backend.app.models import User
     async with AsyncSessionLocal() as db:
         try:
             await _seed_skills(db)
@@ -435,6 +436,13 @@ async def seed_database():
             await _seed_projects(db)
             await _seed_assessments(db)
             await _seed_demo_user(db)
+            # Also seed progress for already-existing demo users (idempotent)
+            demo_result = await db.execute(
+                select(User).where(User.email == "demo@learnpath.ai")
+            )
+            demo_user = demo_result.scalar_one_or_none()
+            if demo_user:
+                await _seed_demo_progress(db, demo_user.id)
             await db.commit()
         except Exception as e:
             await db.rollback()
@@ -637,6 +645,68 @@ async def _seed_demo_user(db: AsyncSession):
         )
         db.add(user_skill)
 
+    # Create demo progress records for realistic streak/progress
+    from backend.app.models import Progress
+    from datetime import datetime, timedelta
+    import random
+
+    demo_progress = [
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "completed",
+            "completion_percentage": 100,
+            "time_spent_hours": 2.5,
+            "days_ago": 1,
+        },
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "completed",
+            "completion_percentage": 100,
+            "time_spent_hours": 3.0,
+            "days_ago": 2,
+        },
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "completed",
+            "completion_percentage": 100,
+            "time_spent_hours": 1.5,
+            "days_ago": 3,
+        },
+        {
+            "resource_id": None,
+            "project_id": None,
+            "status": "in_progress",
+            "completion_percentage": 45,
+            "time_spent_hours": 1.0,
+            "days_ago": 0,
+        },
+    ]
+
+    for i, prog_data in enumerate(demo_progress):
+        completed_at = None
+        updated_at = datetime.utcnow()
+        if prog_data["status"] == "completed":
+            completed_at = datetime.utcnow() - timedelta(days=prog_data["days_ago"])
+            updated_at = completed_at
+        else:
+            updated_at = datetime.utcnow() - timedelta(hours=random.randint(1, 5))
+
+        progress = Progress(
+            id=gen_id(),
+            user_id=demo_user.id,
+            resource_id=prog_data["resource_id"],
+            project_id=prog_data["project_id"],
+            status=prog_data["status"],
+            completion_percentage=prog_data["completion_percentage"],
+            time_spent_hours=prog_data["time_spent_hours"],
+            completed_at=completed_at,
+            updated_at=updated_at,
+        )
+        db.add(progress)
+
     # Create demo roadmap
     demo_roadmap = Roadmap(
         id=gen_id(),
@@ -722,4 +792,55 @@ async def _seed_demo_user(db: AsyncSession):
     )
     db.add(demo_roadmap)
     await db.flush()
+    await _seed_demo_progress(db, demo_user.id)
     print("[Seed] Demo user created: demo@learnpath.ai / Demo@12345")
+
+
+async def _seed_demo_progress(db: AsyncSession, user_id: str):
+    """Seed realistic progress records for demo user so dashboard shows non-zero data."""
+    from backend.app.models import Progress, LearningResource
+    from sqlalchemy import select
+    from datetime import datetime, timedelta
+
+    # Check if progress already seeded
+    existing = await db.execute(
+        select(Progress).where(Progress.user_id == user_id).limit(1)
+    )
+    if existing.scalar_one_or_none():
+        return  # Already seeded
+
+    # Get first 5 resources from DB to mark as completed/in_progress
+    res_result = await db.execute(select(LearningResource).limit(10))
+    resources = res_result.scalars().all()
+    if not resources:
+        return
+
+    now = datetime.utcnow()
+    # Seed 3 completed + 2 in_progress resources spanning last 30 days
+    progress_data = [
+        {"idx": 0, "status": "completed", "pct": 100, "hours": 8.0, "days_ago": 25},
+        {"idx": 1, "status": "completed", "pct": 100, "hours": 12.0, "days_ago": 18},
+        {"idx": 2, "status": "completed", "pct": 100, "hours": 6.0, "days_ago": 10},
+        {"idx": 3, "status": "in_progress", "pct": 65, "hours": 4.5, "days_ago": 5},
+        {"idx": 4, "status": "in_progress", "pct": 30, "hours": 2.0, "days_ago": 1},
+    ]
+
+    for pd in progress_data:
+        if pd["idx"] >= len(resources):
+            break
+        resource = resources[pd["idx"]]
+        updated = now - timedelta(days=pd["days_ago"])
+        completed_at = updated if pd["status"] == "completed" else None
+        prog = Progress(
+            id=gen_id(),
+            user_id=user_id,
+            resource_id=resource.id,
+            status=pd["status"],
+            completion_percentage=pd["pct"],
+            time_spent_hours=pd["hours"],
+            updated_at=updated,
+            completed_at=completed_at,
+        )
+        db.add(prog)
+
+    print("[Seed] Demo progress records seeded (5 resources)")

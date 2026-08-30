@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { assessmentAPI } from '@/lib/api';
-import { ClipboardList, CheckCircle, XCircle, Clock, Star, ChevronRight } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, Clock, ChevronRight, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Assessment, AssessmentResult } from '@/types';
 
@@ -23,6 +23,8 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
     return shuffled.slice(0, 15);
   }, [assessment]);
 
+  const queryClient = useQueryClient();
+
   const submitMutation = useMutation({
     mutationFn: () => assessmentAPI.submit(assessment.id, answers),
     onSuccess: (res) => {
@@ -31,6 +33,10 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
       setSubmitted(true);
       onDone(r);
       toast.success(`Assessment complete! Score: ${r.score.toFixed(0)}%`);
+      // Invalidate so dashboard/skills/recommendations reflect updated skill level
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['skill-gaps'] });
+      queryClient.invalidateQueries({ queryKey: ['recommendations'] });
     },
     onError: () => toast.error('Could not submit assessment. Please try again.'),
   });
@@ -78,6 +84,19 @@ function AssessmentTaker({ assessment, onDone }: { assessment: Assessment; onDon
             ))}
           </div>
         )}
+        <div className="bg-gradient-to-r from-indigo-950/50 to-violet-950/50 border border-indigo-800/50 rounded-xl p-4 text-left mt-4">
+          <p className="text-indigo-300 font-medium text-sm mb-2 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Adaptive Learning Update
+          </p>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            Your skill level has been updated based on this assessment. Your personalized recommendations and next best action have been recalculated to match your new skill state.
+          </p>
+          <button onClick={() => window.location.href = '/dashboard'}
+            className="mt-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+            View Updated Dashboard
+          </button>
+        </div>
       </div>
     );
   }
@@ -220,7 +239,7 @@ export default function AssessmentPage() {
                 <div className="flex items-center gap-4 text-sm text-slate-400 mb-4">
                   <span className="flex items-center gap-1"><ClipboardList className="h-4 w-4" /> {assessment.question_count} questions</span>
                   <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> ~{assessment.estimated_minutes} min</span>
-                  <span className="flex items-center gap-1"><Star className="h-4 w-4" /> Pass: {assessment.passing_score}%</span>
+                  <span className="flex items-center gap-1">⭐ Pass: {assessment.passing_score}%</span>
                 </div>
 
                 <button onClick={() => setSelectedId(assessment.id)}

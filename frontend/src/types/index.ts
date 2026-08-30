@@ -208,6 +208,7 @@ export interface NextBestAction {
   resource_id: string | null;
   estimated_minutes: number;
   reason: string;
+  skill?: string;
 }
 
 export interface TodayTask {

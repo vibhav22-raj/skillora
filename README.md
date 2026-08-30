@@ -115,30 +115,35 @@ cd frontend
 npm install
 ```
 
-## Start The Backend Server
+## Quick Start - Both Servers
 
-Always start the API from the **repository root**, not from the `backend/` folder. Imports are `backend.app.*`.
+**Option 1: Using the provided scripts (Recommended)**
 
+```powershell
+# PowerShell
+.\start-servers.ps1
+
+# Batch file
+.\start-servers.bat
+```
+
+**Option 2: Manual startup**
+
+Open **two terminals**:
+
+**Terminal 1 - Backend:**
 ```powershell
 python -m uvicorn backend.app.main:app --reload --port 8000
 ```
 
-- App: http://localhost:8000
-- API docs: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-Keep this terminal running.
-
-## Start The Frontend Server
-
-Open a **second terminal**:
-
+**Terminal 2 - Frontend:**
 ```powershell
 cd frontend
 npm run dev
 ```
 
-App URL: http://localhost:3000
+- Backend: http://localhost:8000 (API docs: http://localhost:8000/docs)
+- Frontend: http://localhost:3000
 
 ## Demo Login
 

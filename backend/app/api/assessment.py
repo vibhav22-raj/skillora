@@ -93,7 +93,8 @@ async def submit_assessment(
         q_id = question["id"]
         selected = submission.answers.get(q_id)
         is_correct = str(selected) == str(question.get("correct_answer"))
-        topic = question.get("topic") or question.get("type") or question.get("difficulty") or assessment.skill_name or "Core concept"
+        # Use skill_name as topic fallback — NEVER use difficulty as a topic label
+        topic = question.get("topic") or question.get("type") or assessment.skill_name or "Core concepts"
         if is_correct:
             correct += 1
             strong_areas.add(str(topic))
@@ -129,13 +130,17 @@ async def submit_assessment(
         recommendations.append(f"Review {assessment.skill_name} fundamentals before retaking")
         recommendations.append("Check the prerequisite resources in your roadmap")
     if weak_areas:
-        recommendations.append(f"Focus revision on: {', '.join(sorted(weak_areas)[:3])}")
+        # Filter out any accidentally included difficulty strings
+        valid_weak = [w for w in sorted(weak_areas)[:3] if w.lower() not in ("easy", "medium", "hard", "beginner", "advanced")]
+        if valid_weak:
+            recommendations.append(f"Focus revision on: {', '.join(valid_weak)}")
 
-    next_action = (
-        f"Retake {assessment.skill_name} after reviewing {', '.join(sorted(weak_areas)[:2])}"
-        if weak_areas and not passed
-        else f"Move to the next {assessment.skill_name} roadmap milestone"
-    )
+    # Generate a clean, specific next_action
+    if not passed:
+        next_action = f"Review {assessment.skill_name} fundamentals and retake the assessment to improve your skill level."
+    else:
+        next_action = f"Great work on {assessment.skill_name}! Move to the next milestone in your roadmap."
+
 
     # Save attempt
     attempt = AssessmentAttempt(

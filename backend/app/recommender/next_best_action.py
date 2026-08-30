@@ -80,6 +80,7 @@ def get_next_best_action(
                     "type": "lesson",
                     "resource_id": resource.get("id"),
                     "estimated_minutes": int(resource.get("duration_hours", 1) * 60),
+                    "skill": skill_name,
                     "reason": (
                         f"You have a {top_gap['priority'].upper()} priority gap in {skill_name}. "
                         f"Closing this gap will unlock the next phase of your roadmap."
@@ -101,6 +102,7 @@ def get_next_best_action(
                 "type": "project",
                 "resource_id": None,
                 "estimated_minutes": int(project.get("duration_hours", 8) * 60),
+                "skill": "Project",
                 "reason": "Projects are the best way to solidify your skills and build your portfolio.",
             }
         
@@ -110,6 +112,7 @@ def get_next_best_action(
             "type": "lesson",
             "resource_id": None,
             "estimated_minutes": 45,
+            "skill": active_phase.get('skills', ['Learning'])[0] if active_phase.get('skills') else 'Learning',
             "reason": f"You're in Phase {active_phase.get('phase_number', 1)}. Consistent daily practice is the fastest path to your goal.",
         }
     
