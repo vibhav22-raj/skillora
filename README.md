@@ -1,6 +1,8 @@
 ﻿# Skillora AI
 
 > An AI-powered personalized learning path recommender that helps learners identify skill gaps, discover relevant resources, and follow a structured learning roadmap tailored to their goals.
+>
+> 🌐 **Live Demo:** https://ora-one-woad.vercel.app/
 
 ---
 
