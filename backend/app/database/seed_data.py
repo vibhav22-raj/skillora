@@ -535,7 +535,10 @@ ASSESSMENTS_DATA = [
 
 async def seed_database():
     """Main seed function — idempotent, safe to run multiple times."""
-    from backend.app.models import User
+    try:
+        from backend.app.models import User
+    except ImportError:
+        from app.models import User
     async with AsyncSessionLocal() as db:
         try:
             await _seed_skills(db)
@@ -753,7 +756,10 @@ async def _seed_demo_user(db: AsyncSession):
         db.add(user_skill)
 
     # Create demo progress records for realistic streak/progress
-    from backend.app.models import Progress
+    try:
+        from backend.app.models import Progress
+    except ImportError:
+        from app.models import Progress
     from datetime import datetime, timedelta
     import random
 
@@ -905,7 +911,10 @@ async def _seed_demo_user(db: AsyncSession):
 
 async def _seed_demo_progress(db: AsyncSession, user_id: str):
     """Seed realistic progress records for demo user so dashboard shows non-zero data."""
-    from backend.app.models import Progress, LearningResource
+    try:
+        from backend.app.models import Progress, LearningResource
+    except ImportError:
+        from app.models import Progress, LearningResource
     from sqlalchemy import select
     from datetime import datetime, timedelta
 
