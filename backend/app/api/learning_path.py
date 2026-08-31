@@ -178,7 +178,6 @@ async def generate_learning_path(
         profile.target_deadline = request.target_deadline
 
     # Persist current skills: replace old user skills with the enriched set
-    from sqlalchemy import delete
     await db.execute(delete(UserSkill).where(UserSkill.user_id == current_user.id))
 
     for skill_name, level in current_skills_dict.items():
