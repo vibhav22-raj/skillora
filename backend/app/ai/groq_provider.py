@@ -79,18 +79,17 @@ class GroqProvider(BaseAIProvider):
         return await DemoProvider().extract_profile(user_input)
 
     async def generate_explanation(self, context: Dict[str, Any]) -> str:
-        system = "You are Skillora's AI learning mentor. Generate concise, specific explanations for resource recommendations. Use markdown. Max 120 words. Be specific about why this resource fits the learner's gap, format, and duration."
+        system = (
+            "You are Skillora's AI learning mentor. Generate a concise, explainable 1-2 sentence recommendation reason. "
+            "Follow this pattern: 'Recommended because you are targeting [Goal] and currently have a [Priority] priority gap in [Skill]. This [Format] directly bridges that gap at your level.' "
+            "Keep it strictly under 45 words. Be direct, clear, and personalized."
+        )
         resource = context.get('resource', {}) or {}
         profile = context.get('profile', {}) or {}
-        user_parts = [f"Resource: {resource.get('title', 'Resource')}"]
-        if resource.get('provider'):
-            user_parts.append(f"Provider: {resource.get('provider')}")
-        if resource.get('format'):
-            user_parts.append(f"Format: {resource.get('format')}")
-        if resource.get('duration_hours'):
-            user_parts.append(f"Duration: {resource.get('duration_hours')}h")
-        user_parts.append(f"Learner goal: {profile.get('target_role', 'your target role')}")
-        user = '. '.join(user_parts) + '. Explain concisely why this resource is recommended, referencing the learner\'s top skill gaps.'
+        skill_gaps = context.get('skill_gaps', []) or []
+        top_gap = skill_gaps[0].get('skill_name') if skill_gaps else 'Core Skills'
+        gap_priority = skill_gaps[0].get('priority', 'high') if skill_gaps else 'high'
+        user = f"Resource: {resource.get('title')}, Provider: {resource.get('provider')}, Format: {resource.get('format')}, Learner Goal: {profile.get('target_role')}, Top Gap: {top_gap} ({gap_priority} priority)."
         try:
             return await self._generate(system, user)
         except Exception:
@@ -101,19 +100,29 @@ class GroqProvider(BaseAIProvider):
             return await DemoProvider().generate_explanation(context)
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
-        system = f"""You are Skillora's AI Mentor: a friendly personal study companion for tech learners.
+        system = f"""You are Skillora's AI Mentor: a dedicated 1-on-1 personalized learning coach for this specific learner.
 
-Learner context:
+Learner Profile & Journey Context:
 {format_learner_context(context)}
 
-Rules:
-- Match the user's language. English -> English, Hindi -> Hindi, Hinglish -> natural Hinglish.
-- Explicitly reference their target goal, skill gaps, current roadmap milestone, and recent assessments when helpful.
-- Be concise, practical, and action-oriented.
-- Do not fabricate completed courses, scores, certificates, or progress.
-- If they have limited time (e.g. 30 mins), suggest high-impact micro-learning or quick problem-solving.
-- If they are struggling, provide intuition, small analogies, code snippets, and encouragement.
-- Keep responses under 250 words unless detailed depth is requested."""
+Mentor Guidelines:
+1. Personalized Coaching (NOT Generic Articles):
+   - When asked a concept (e.g. "What is recursion?", "What is OOPs?"):
+     * Directly explain the core idea first in 1-2 clear, intuitive sentences matched to their experience level.
+     * Naturally contextualize why it matters for their target role ({context.get('profile', {}).get('target_role', 'your career path')}) and current learning journey (e.g. tree/graph search or algorithms for AI/ML; clean modular services for Backend), ONLY if relevant. Do NOT force unrelated references.
+     * If helpful, provide a tiny 2-4 line code snippet or intuition.
+     * Conclude with a crisp, 1-sentence next action or practice idea connected to their roadmap.
+   - Keep total response concise (around 120-180 words). Do NOT generate giant textbook chapters, multi-section articles, or unrequested study plans.
+
+2. Struggle & Assessment Support:
+   - If the learner is stuck, confused, or failed an assessment, pinpoint the specific concept gap, offer an intuition-first analogy, and suggest a 15-minute diagnostic exercise.
+
+3. Time-Aware Advice:
+   - If they have limited time (e.g. 30 mins), give a focused micro-sprint targeting their active milestone.
+
+4. Tone & Language:
+   - Match the user's language (English -> English, Hindi -> Hindi, Hinglish -> natural Hinglish).
+   - Conversational, warm, sharp, and encouraging."""
         
         last_msg = "\n".join(
             f"{'User' if m.get('role') == 'user' else 'Mentor'}: {m.get('content', '')}"
