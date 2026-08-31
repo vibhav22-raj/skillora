@@ -54,10 +54,14 @@ class GroqProvider(BaseAIProvider):
                         {"role": "user", "content": user},
                     ],
                     max_tokens=max_tokens,
-                    temperature=0.7,
+                    temperature=0.6,
                 )
                 if response.choices and response.choices[0].message.content:
-                    return response.choices[0].message.content.strip()
+                    content = response.choices[0].message.content.strip()
+                    # Markdown fence balancing: ensure code blocks are never left unclosed
+                    if content.count("```") % 2 != 0:
+                        content += "\n```"
+                    return content
             except Exception as e:
                 print(f"[GroqProvider] Model {model_name} warning: {e}")
                 continue
@@ -100,36 +104,36 @@ class GroqProvider(BaseAIProvider):
             return await DemoProvider().generate_explanation(context)
 
     async def chat(self, messages: List[Dict], context: Dict[str, Any]) -> str:
-        system = f"""You are Skillora's AI Mentor: a dedicated 1-on-1 personalized learning coach for this specific learner.
+        system = f"""You are Skillora's AI Mentor: a personalized learning coach for this student.
 
-Learner Profile & Journey Context:
+Learner Context:
 {format_learner_context(context)}
 
-Mentor Guidelines:
-1. Personalized Coaching (NOT Generic Articles):
-   - When asked a concept (e.g. "What is recursion?", "What is OOPs?"):
-     * Directly explain the core idea first in 1-2 clear, intuitive sentences matched to their experience level.
-     * Naturally contextualize why it matters for their target role ({context.get('profile', {}).get('target_role', 'your career path')}) and current learning journey (e.g. tree/graph search or algorithms for AI/ML; clean modular services for Backend), ONLY if relevant. Do NOT force unrelated references.
-     * If helpful, provide a tiny 2-4 line code snippet or intuition.
-     * Conclude with a crisp, 1-sentence next action or practice idea connected to their roadmap.
-   - Keep total response concise (around 120-180 words). Do NOT generate giant textbook chapters, multi-section articles, or unrequested study plans.
+CRITICAL RESPONSE RULES:
+1. ALWAYS provide a COMPLETE, self-contained response. Never trail off or leave code unclosed.
+2. For educational concept questions (e.g. "What is X?"), strictly use this concise 3-part structure:
+   **Definition**
+   Clear, simple explanation in 2-4 sentences matched to their level.
 
-2. Struggle & Assessment Support:
-   - If the learner is stuck, confused, or failed an assessment, pinpoint the specific concept gap, offer an intuition-first analogy, and suggest a 15-minute diagnostic exercise.
+   **Basic Example**
+   ONE small, beginner-friendly example (a tiny 2-4 line code snippet or conceptual analogy).
 
-3. Time-Aware Advice:
-   - If they have limited time (e.g. 30 mins), give a focused micro-sprint targeting their active milestone.
+   **Why it matters**
+   2-3 concise bullet points explaining practical relevance to modern software development or their target path.
 
-4. Tone & Language:
-   - Match the user's language (English -> English, Hindi -> Hindi, Hinglish -> natural Hinglish).
-   - Conversational, warm, sharp, and encouraging."""
+3. STRICT PROHIBITIONS for basic questions:
+   - Do NOT generate giant PyTorch/TensorFlow implementations.
+   - Do NOT write multi-page lectures, giant tables, or unrequested 20-hr study plans.
+   - Keep total length concise (~100 to 180 words).
+
+4. Match the user's language (English -> English, Hindi -> Hindi, Hinglish -> Hinglish)."""
         
         last_msg = "\n".join(
             f"{'User' if m.get('role') == 'user' else 'Mentor'}: {m.get('content', '')}"
             for m in messages[-8:]
         ) or "Hello"
         try:
-            return await self._generate(system, last_msg, max_tokens=600)
+            return await self._generate(system, last_msg, max_tokens=1024)
         except Exception:
             try:
                 from backend.app.ai.demo_provider import DemoProvider
