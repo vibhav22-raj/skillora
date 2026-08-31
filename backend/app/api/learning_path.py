@@ -185,10 +185,24 @@ async def generate_learning_path(
         skill_result = await db.execute(select(Skill).where(Skill.name == skill_name))
         skill = skill_result.scalar_one_or_none()
 
+        if not skill:
+            # Unrecognized/custom skill name — create a real Skill row so the
+            # foreign key on UserSkill.skill_id stays valid (Postgres enforces it).
+            skill = Skill(
+                id=str(uuid.uuid4()),
+                name=skill_name,
+                category="Custom",
+                difficulty=1,
+                prerequisites=[],
+                tags=[],
+            )
+            db.add(skill)
+            await db.flush()
+
         user_skill = UserSkill(
             id=str(uuid.uuid4()),
             user_id=current_user.id,
-            skill_id=skill.id if skill else str(uuid.uuid4()),
+            skill_id=skill.id,
             skill_name=skill_name,
             current_level=level,
             target_level=5,
